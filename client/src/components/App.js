@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React from 'react';
 import Lobby from './Lobby';
 import { SocketProvider } from '../contexts/SocketContext';
 

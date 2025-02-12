@@ -40,6 +40,11 @@ io.on('connection', (socket) => {
   });
 });
 
+app.get('/lobbyPlayers', (req, res) => { // fetch connected player list
+  const players = Object.values(connectedPlayers)
+  res.json(players)
+})
+
 server.listen(5000, () => {
   console.log('Server is running on http://localhost:5000');
 });

@@ -17,30 +17,44 @@ export default function Lobby() {
             return
         }
 
-        const playerJoinedWithUsername = ({ username }) => {
+        const playerJoinedWithUsername = ({ username }) => { // client saw a new player join
             console.log(username + " joined")
+            const joinMessage = username + " joined the lobby."
+            setMessages(prevMessages => [...prevMessages, joinMessage])
             setPlayers(prevPlayers => [...prevPlayers, username])
-            console.log(players)
         }
-        const onPregameMessageReceive = ({ message, username }) => {
+        const onPregameMessageReceive = ({ message, username }) => { // client got a message
             const newMessage = username + ": " + message
             setMessages(prevMessages => [...prevMessages, newMessage])
         }
-        const onPlayerLeave = ({ username }) => {
+        const onPlayerLeave = ({ username }) => { // client saw a player leave
             setPlayers(prevPlayers => prevPlayers.filter(player => player !== username));
+            console.log(username + " left")
+            const leaveMessage = username + " disconnected."
+            setMessages(prevMessages => [...prevMessages, leaveMessage])
         };
 
-        socket.on('clientside_player_enter_lobby', playerJoinedWithUsername)
+        socket.on('clientside_player_enter_lobby', playerJoinedWithUsername) // open the eventhandlers
         socket.on('receive_pregame_message', onPregameMessageReceive)
         socket.on('clientside_player_left_lobby', onPlayerLeave)
 
         return () => { // When lobby unmounts
-            socket.off('clientside_player_enter_lobby', playerJoinedWithUsername)
+            socket.off('clientside_player_enter_lobby', playerJoinedWithUsername) // goodbye event handlers.
             socket.off('receive_pregame_message', onPregameMessageReceive)
             socket.off('clientside_player_left_lobby', onPlayerLeave)
         };
     }, [socket])
 
+    const fetchPlayers = async () => {
+        try {
+            const response = await fetch('http://localhost:5000/lobbyPlayers')
+            const playerList = await response.json()
+            setPlayers(playerList)
+        } catch (err) {
+            console.log("Error fetching connected players", err)
+        }
+    }
+    
     function handlePlayerUsernameSubmit(submittedUsername) { //The player submitted their username and "connected" completely.
         setUsername(submittedUsername)
         if (!socket) {
@@ -48,6 +62,7 @@ export default function Lobby() {
             return
         }
         socket.emit('player_enter_lobby', { username: submittedUsername })
+        fetchPlayers()
     }
     
     function handleMessageSubmit(e) { // temporary until moved into its own component. When player clicks "send" in lobby chat
