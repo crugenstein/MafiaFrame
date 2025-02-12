@@ -1,15 +1,17 @@
-import React, { useState } from 'react';
-import Login from './Login';
+import React, { useState, useRef } from 'react';
+import Lobby from './Lobby';
+import { SocketProvider } from '../contexts/SocketContext';
 
 function App() {
-  const [username, setUsername] = useState()
-
   return (
-    <>
-      {username}
-      <Login onUsernameSubmit={setUsername} />
-    </>
-  )
+    <Lobby />
+  );
 }
 
-export default App;
+export default function AppWrapper() {
+  return (
+    <SocketProvider>
+        <App />
+    </SocketProvider>
+  );
+}
