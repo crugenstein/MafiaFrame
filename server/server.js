@@ -12,11 +12,17 @@ const io = socketIO(server, {
     }
 })
 
-function grantChatSendAccess(chatId, socket) {
-  if (!chats[chatId].canSend) {
-    chats[chatId].canSend = new Set()
+function instantiateConnectedPlayerObject(socket) {
+  connectedPlayers[socket.id] = {
+    username: null,
+    canSendToChats: new Set()
   }
-  chats[chatId].canSend.add(socket.id)
+}
+
+function grantChatSendAccess(chatId, socket) {
+  if (!username) return
+  socket.join(chatId)
+  connectedPlayers[socket.id].canSendToChats.add(chatId)
 }
 
 // CORS SLOP
@@ -24,12 +30,12 @@ app.use(cors())
 app.use(express.json())
 
 var connectedPlayers = {}
-var chats = {}
 
 // ON SOCKET CONNECTION
 io.on('connection', (socket) => {
 
   console.log('A user connected');
+  instantiateConnectedPlayerObject(socket)
   grantChatSendAccess('lobby', socket)
 
   socket.on('player_enter_lobby', ({ username }) => { // CLIENT TOLD SERVER "I JOINED THE LOBBY AND SUBMITTED A USERNAME!!!"
@@ -38,9 +44,9 @@ io.on('connection', (socket) => {
   })
 
   socket.on('send_message', ({ senderSocket, contents, receivingChatId }) => {
-    if (chats[receivingChatId] && chats[receivingChatId].has(socket.id))
-
-    io.to(receivingChatId).emit('receive_message', { sender, contents, receivingChatId })
+    if (chats[receivingChatId] && chats[receivingChatId].has(senderSocket.id)) {
+      io.to(receivingChatId).emit('receive_message', { sender, contents, receivingChatId })
+    }
   })
 
   socket.on('send_pregame_message', ({ message, username }) => { // CLIENT TOLD SERVER "I WANT TO SEND A MESSAGE TO OTHER LOBBY PEOPLE BEFORE GAME STARTS"
