@@ -26,7 +26,6 @@ function instantiateSharedChatObject(chatId) {
 }
 
 function grantChatSendAccess(chatId, socket) {
-  if (!username) return
   socket.join(chatId)
   connectedPlayers[socket.id].canSendToChats.add(chatId)
 }
@@ -65,10 +64,6 @@ io.on('connection', (socket) => {
       io.to(receivingChatId).emit('receive_message', { sender: connectedPlayers[senderSocketId].username, contents, receivingChatId })
     }
   })
-
-  socket.on('send_pregame_message', ({ message, username }) => { // CLIENT TOLD SERVER "I WANT TO SEND A MESSAGE TO OTHER LOBBY PEOPLE BEFORE GAME STARTS"
-    io.emit('receive_pregame_message', { message, username });
-  });
 
   socket.on('disconnect', () => { // CLIENT TOLD SERVER "GOODBYE"!!!
     if (connectedPlayers[socket.id]) {

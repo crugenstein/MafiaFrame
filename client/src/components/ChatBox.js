@@ -38,9 +38,9 @@ export default function ChatBox({ chatId }) {
             socket.off('receive_message', receiveMessage)
         };
 
-    }, [socket])
+    }, [socket, chatId])
 
-    function handleMessageSubmit(e) { // When player clicks "send" in lobby chat
+    function handleMessageSubmit(e) {
         e.preventDefault()
         if (!socket) {
             console.log("Player tried to send message with no socket!")
@@ -48,7 +48,7 @@ export default function ChatBox({ chatId }) {
         }
         const senderSocketId = socket.id
         const contents = messageBoxRef.current.value.trim()
-        socket.emit('send_message', { senderSocketId, contents, chatId })
+        socket.emit('send_message', { senderSocketId, contents, receivingChatId: chatId })
     }
 
     return (
@@ -62,9 +62,9 @@ export default function ChatBox({ chatId }) {
                     {messages.map((msg, index) => (
                         <div key={index} style={{
                             marginBottom: '5px',
-                            backgroundColor: msg.sender === '[SERVER]' ? 'yellow' : (index % 2 === 0 ? 'lightgray' : 'darkgray'), // Conditional background
-                            padding: '5px', // Padding for better text spacing
-                            borderRadius: '5px' // Rounded corners for styling
+                            backgroundColor: msg.sender === '[SERVER]' ? 'yellow' : (index % 2 === 0 ? 'lightgray' : 'darkgray'),
+                            padding: '5px',
+                            borderRadius: '5px'
                         }}>
                             {msg.sender + ": " + msg.contents}
                         </div>
