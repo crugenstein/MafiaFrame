@@ -1,22 +1,36 @@
 import React, { useState, useRef, useEffect } from 'react'
-import { Form, Button } from 'react-bootstrap'
 import { useSocket } from '../contexts/SocketContext'
 import 'bootstrap/dist/css/bootstrap.min.css'
 
-export default function ChatBox({ chatId, username }) {
+export default function ChatBox({ chatId }) {
     const socket = useSocket()
     const [messages, setMessages] = useState([])
     const messageBoxRef = useRef()
 
     useEffect(() => {
 
-        fetchMessages()
-
         const receiveMessage = ({ sender, contents, receivingChatId }) => { // client got a message
             if (chatId !== receivingChatId) return;
             const newMessage = {sender, contents}
             setMessages(prevMessages => [...prevMessages, newMessage])
         }
+
+        const fetchMessages = async () => {
+            try {
+                const response = await fetch(`http://localhost:5000/chatMessages/${chatId}?socketId=${socket.id}`)
+                if (response.ok) {
+                    const messageList = await response.json()
+                    setMessages(messageList)
+                } else {
+                    const errorData = await response.json()
+                    console.error(errorData.error)
+                }
+            } catch (err) {
+                console.log("Error fetching chat messages", err)
+            }
+        }
+
+        fetchMessages()
 
         socket.on('receive_message', receiveMessage)
 
@@ -26,17 +40,7 @@ export default function ChatBox({ chatId, username }) {
 
     }, [socket])
 
-    const fetchMessages = async () => {
-        try {
-            const response = await fetch(`http://localhost:5000/chatMessages/${chatId}`)
-            const messageList = await response.json()
-            setMessages(messageList)
-        } catch (err) {
-            console.log("Error fetching chat messages", err)
-        }
-    }
-
-    function handleMessageSubmit(e) { // temporary until moved into its own component. When player clicks "send" in lobby chat
+    function handleMessageSubmit(e) { // When player clicks "send" in lobby chat
         e.preventDefault()
         if (!socket) {
             console.log("Player tried to send message with no socket!")

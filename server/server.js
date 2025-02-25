@@ -57,8 +57,8 @@ io.on('connection', (socket) => {
   })
 
   socket.on('send_message', ({ senderSocket, contents, receivingChatId }) => {
-    if (senderSocket && senderSocket.id && connectedPlayers[senderSocket.id] && connectedPlayers[senderSocket.id].has(receivingChatId)) {
-      addMessageToSharedChat(receivingChatId, { sender: connectedPlayers[senderSocket.id].username, contents, receivingChatId })
+    if (senderSocket && senderSocket.id && connectedPlayers[senderSocket.id] && connectedPlayers[senderSocket.id].canSendToChats.has(receivingChatId)) {
+      addMessageToSharedChat(receivingChatId, { sender: connectedPlayers[senderSocket.id].username, contents })
       io.to(receivingChatId).emit('receive_message', { sender: connectedPlayers[senderSocket.id].username, contents, receivingChatId })
     }
   })
@@ -77,8 +77,17 @@ io.on('connection', (socket) => {
 });
 
 app.get('/lobbyPlayers', (req, res) => { // fetch connected player list
-  const players = Object.values(connectedPlayers)
-  res.json(players)
+  const usernames = Object.values(connectedPlayers).map(socket => socket.username)
+  res.json(usernames)
+})
+
+app.get('/chatMessages/:chatId', (req, res) => {
+  const { chatId } = req.params
+  const { socketId } = req.query
+  if (!sharedChats[chatId]) {return res.status(400).json({ error: 'Chat does not exist'})}
+  if (!socketId || !connectedPlayers[socketId]) {return res.status(400).json({ error: 'Socket is not connected'})}
+  if (!connectedPlayers[socketId].canSendToChats.has(chatId)) {return res.status(403).json({ error: 'You do not have access perms for this chat lil bro.'})}
+  res.json(sharedChats[chatId].messages)
 })
 
 server.listen(5000, () => {
