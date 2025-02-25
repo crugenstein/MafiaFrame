@@ -53,6 +53,9 @@ io.on('connection', (socket) => {
   socket.on('player_enter_lobby', ({ username }) => { // CLIENT TOLD SERVER "I JOINED THE LOBBY AND SUBMITTED A USERNAME!!!"
     connectedPlayers[socket.id].username = username
     grantChatSendAccess('lobby', socket)
+    const joinMessage = { sender: '[SERVER]', contents: username + ' connected.' }
+    addMessageToSharedChat('lobby', joinMessage)
+    io.to('lobby').emit('receive_message', { sender: '[SERVER]', contents: username + ' connected.', receivingChatId: 'lobby' })
     io.emit('clientside_player_enter_lobby', { username })
   })
 
@@ -71,6 +74,9 @@ io.on('connection', (socket) => {
     if (connectedPlayers[socket.id]) {
       const username = connectedPlayers[socket.id].username;
       delete connectedPlayers[socket.id];
+      const leaveMessage = { sender: '[SERVER]', contents: username + ' disconnected.' }
+      addMessageToSharedChat('lobby', leaveMessage)
+      io.to('lobby').emit('receive_message', { sender: '[SERVER]', contents: username + ' disconnected.', receivingChatId: 'lobby' })
       socket.broadcast.emit('clientside_player_left_lobby', { username });
     }
   });
