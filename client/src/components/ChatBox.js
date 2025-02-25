@@ -46,9 +46,9 @@ export default function ChatBox({ chatId }) {
             console.log("Player tried to send message with no socket!")
             return
         }
-        const senderSocket = socket
+        const senderSocketId = socket.id
         const contents = messageBoxRef.current.value.trim()
-        socket.emit('send_message', { senderSocket, contents, chatId })
+        socket.emit('send_message', { senderSocketId, contents, chatId })
     }
 
     return (

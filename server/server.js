@@ -56,10 +56,10 @@ io.on('connection', (socket) => {
     io.emit('clientside_player_enter_lobby', { username })
   })
 
-  socket.on('send_message', ({ senderSocket, contents, receivingChatId }) => {
-    if (senderSocket && senderSocket.id && connectedPlayers[senderSocket.id] && connectedPlayers[senderSocket.id].canSendToChats.has(receivingChatId)) {
-      addMessageToSharedChat(receivingChatId, { sender: connectedPlayers[senderSocket.id].username, contents })
-      io.to(receivingChatId).emit('receive_message', { sender: connectedPlayers[senderSocket.id].username, contents, receivingChatId })
+  socket.on('send_message', ({ senderSocketId, contents, receivingChatId }) => {
+    if (connectedPlayers[senderSocketId] && connectedPlayers[senderSocketId].canSendToChats.has(receivingChatId)) {
+      addMessageToSharedChat(receivingChatId, { sender: connectedPlayers[senderSocketId].username, contents })
+      io.to(receivingChatId).emit('receive_message', { sender: connectedPlayers[senderSocketId].username, contents, receivingChatId })
     }
   })
 
