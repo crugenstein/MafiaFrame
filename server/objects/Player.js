@@ -1,5 +1,5 @@
 const { roleDictionary } = require('../data/roles')
-const { ActiveAbility } = require('./ActiveAbility')
+const { PhaseAbility } = require('./PhaseAbility')
 
 class Player {
     constructor(socketId) {
@@ -18,7 +18,7 @@ class Player {
 
         this.activeAbilities = roleData.abilities.map( ({abilityKey, abilityCount} ) => {
             return {
-                ability: new ActiveAbility(abilityKey),
+                ability: new PhaseAbility(abilityKey),
                 usesLeft: abilityCount
             }
         })

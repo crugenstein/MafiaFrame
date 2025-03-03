@@ -1,26 +1,24 @@
 const { Player } = require('../objects/Player')
 
 class GameManager {
-    constructor() {
-        this.players = {} // DICTIONARY of socketId to Player object
-        this.sharedChats = {}
-        
-        this.gameStatus = 'LOBBY_WAITING' // 'LOBBY_WAITING', 'IN_PROGRESS', or 'GAME_FINISHED'
-        this.phaseType = 'LOBBY' // 'LOBBY', 'DAY', or 'NIGHT'
-        this.phaseNumber = 0
-        this.phaseTimeLeft = 15 // in seconds
-    }
+    static players = {}
+    static sharedChats = {}
 
-    addPlayer(socketId) {
+    static gameStatus = 'LOBBY_WAITING' // 'LOBBY_WAITING', 'IN_PROGRESS', or 'GAME_FINISHED'
+    static phaseType = 'LOBBY' // 'LOBBY', 'DAY', or 'NIGHT'
+    static phaseNumber = 0
+    static phaseTimeLeft = 15 // in seconds 
+
+    static addPlayer(socketId) {
         newPlayer = new Player(socketId)
         this.players[socketId] = newPlayer
     }
 
-    getPlayer(socketId) {
+    static getPlayer(socketId) {
         return this.players[socketId]
     }
 
-    removePlayer(socketId) {
+    static removePlayer(socketId) {
         delete this.players[socketId]
     }
 }
