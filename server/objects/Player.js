@@ -1,3 +1,6 @@
+const { roleDictionary } = require('../data/roles')
+const { ActiveAbility } = require('./ActiveAbility')
+
 class Player {
     constructor(socketId) {
         this.socketId = socketId
@@ -6,7 +9,19 @@ class Player {
         this.admin = false
 
         this.role = null
-        this.abilities = []
+        this.activeAbilities = [] // {ability: ActiveAbility, usesLeft: INT}
+    }
+
+    assignRole(roleKey) {
+        const roleData = roleDictionary[roleKey]
+        this.role = roleData
+
+        this.activeAbilities = roleData.abilities.map( ({abilityKey, abilityCount} ) => {
+            return {
+                ability: new ActiveAbility(abilityKey),
+                usesLeft: abilityCount
+            }
+        })
     }
 }
 
