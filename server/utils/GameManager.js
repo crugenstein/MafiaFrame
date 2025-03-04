@@ -40,6 +40,17 @@ class GameManager {
         }
     }
 
+    static registerAttack(attacker, victim, attackStrength, specialProperties = []) {
+        if (victim.getDefense() >= attackStrength) {
+            victim.notif(`You were attacked, but your defense level overwhelmed the assailant!`)
+            return false
+        } else {
+            victim.notif(`You were attacked!`)
+            victim.setStatus('DEAD')
+            return true
+        }
+    }
+
     static clearPhaseLeftovers() {
         this.players.forEach((player) => {
             player.clearVisitors()
