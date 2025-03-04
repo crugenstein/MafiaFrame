@@ -22,6 +22,14 @@ class SharedChat {
         return this.writers.has(player)
     }
 
+    revokeRead(player) {
+        this.readers.delete(player)
+    }
+
+    revokeWrite(player) {
+        this.writers.delete(player)
+    }
+
     getMessages() {
         return messages
     }

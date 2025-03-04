@@ -64,12 +64,19 @@ class GameManager {
 
     static concludePhase() {
         AbilityManager.processPhaseEnd()
-        if (phaseType === 'DAY') {phaseType = 'NIGHT'}
+        if (phaseType === 'DAY') {
+            const key = `DAY-${this.phaseNumber}`
+            const prevDP = this.sharedChats.get(key)
+            this.players.forEach((player) => {
+                prevDP.revokeWrite(player)
+            })
+            phaseType = 'NIGHT'
+        }
         else if (phaseType === 'NIGHT') {
             phaseType = 'DAY'
             this.phaseNumber++
         }
-        //IF DAY PHASE REMOVE WRITE ACCESS TO OLD DP
+        this.startPhase()
     }
 
     static startPhase() {
