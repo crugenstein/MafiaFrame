@@ -1,4 +1,5 @@
 const { Player } = require('../objects/Player')
+const { SharedChat } = require('../objects/SharedChat')
 const { AbilityManager } = require('./AbilityManager')
 
 class GameManager {
@@ -32,12 +33,8 @@ class GameManager {
         return [...this.players.values()].find(player => player.socketId === socketId) || null
     }
 
-    static registerVisit(visitorName, targetName) {
-        const visitor = this.getPlayer(visitorName)
-        const target = this.getPlayer(targetName)
-        if (visitor && target) {
-            target.addVisitor(visitor)
-        }
+    static registerVisit(visitor, target) {
+        target.addVisitor(visitor)
     }
 
     static registerAttack(attacker, victim, attackStrength, specialProperties = []) {
@@ -49,6 +46,13 @@ class GameManager {
             victim.setStatus('DEAD')
             return true
         }
+    }
+
+    static createSharedChat(chatId, readers = [], writers = []) {
+        const newChat = new SharedChat(chatId)
+        readers.forEach((player) => {newChat.addReader(player)})
+        writers.forEach((player) => {newChat.addWriter(player)})
+        this.sharedChats.set(chatId, newChat)
     }
 
     static clearPhaseLeftovers() {
@@ -65,10 +69,18 @@ class GameManager {
             phaseType = 'DAY'
             this.phaseNumber++
         }
+        //IF DAY PHASE REMOVE WRITE ACCESS TO OLD DP
     }
 
     static startPhase() {
-        // CREATE NEW DAY PHASE CHAT
+        if (this.phaseType === 'DAY') {
+            const key = `DAY-${this.phaseNumber}`
+            this.createSharedChat(key, [...this.players.values()], this.getAlivePlayers())
+            this.players.forEach((player) => {
+                player.notif(`Welcome to Day Phase ${this.phaseNumber}!`)
+            })
+        }
+        //OTHER PHASE START LOGIC
     }
 
     static startGame() {
@@ -77,9 +89,9 @@ class GameManager {
         phaseNumber = 1
         // ROLE DISTRIBUTION LOGIC
         this.players.forEach((player) => {
-            player.notif(`Welcome to ${this.phaseType} PHASE ${this.phaseNumber}!`)
             player.setStatus('ALIVE')
         })
+        this.startPhase()
     }
 }
 
