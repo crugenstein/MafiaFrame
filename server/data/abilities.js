@@ -5,6 +5,7 @@ const abilityDictionary = {
         name: "Investigate (PLACEHOLDER)",
         description: "Select a target. You will learn their Role.",
         effect: ({user, target}) => {
+            
 
         },
         selections: ["SELECT_SINGLE_PLAYER_TARGET"],

@@ -14,6 +14,8 @@ class Player {
         this.activeAbilities = [] // {ability: ActiveAbility, usesLeft: INT}
 
         this.visitors = new Set()
+
+        this.notifications = new Map()
     }
 
     assignRole(roleKey) {
@@ -34,6 +36,13 @@ class Player {
     
     clearVisitors() {
         this.visitors.clear()
+    }
+
+    notify(notificationText) {
+        const key = `${GameManager.phaseType}-${GameManager.phaseNumber}`
+        const oldNotifs = this.notifications.get(key) || []
+        const newNotifs = [...oldNotifs, notificationText]
+        this.notifications.set(key, newNotifs)
     }
 }
 
