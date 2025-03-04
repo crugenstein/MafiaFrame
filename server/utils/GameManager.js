@@ -40,8 +40,11 @@ class GameManager {
         }
     }
 
-    static clearVisits() {
-        this.players.forEach((player) => {player.clearVisitors()})
+    static clearPhaseLeftovers() {
+        this.players.forEach((player) => {
+            player.clearVisitors()
+            player.resetDefense()
+        })
     }
 
     static concludePhase() {

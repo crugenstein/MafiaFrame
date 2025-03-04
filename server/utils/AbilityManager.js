@@ -22,7 +22,7 @@ class AbilityManager {
             }
         })
         this.queue = []
-        GameManager.clearVisits()
+        GameManager.clearPhaseLeftovers()
     }
 }
 

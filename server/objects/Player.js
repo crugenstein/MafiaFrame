@@ -12,6 +12,8 @@ class Player {
 
         this.role = null
         this.activeAbilities = [] // {ability: ActiveAbility, usesLeft: INT}
+        this.baseDefense = 0
+        this.defense = 0
 
         this.visitors = new Set()
 
@@ -28,6 +30,8 @@ class Player {
                 usesLeft: abilityCount
             }
         })
+        this.baseDefense = roleData.defense
+        this.defense = this.baseDefense
     }
 
     addVisitor(visitor) {
@@ -47,6 +51,26 @@ class Player {
 
     setStatus(newStatus) {
         this.status = newStatus
+    }
+
+    getRoleName() {
+        return this.role.name
+    }
+
+    getUsername() {
+        return this.username
+    }
+
+    setDefense(level) {
+        this.defense = Math.max(this.defense, level)
+    }
+
+    resetDefense() {
+        this.defense = this.baseDefense
+    }
+
+    getDefense() {
+        return this.defense
     }
 }
 
