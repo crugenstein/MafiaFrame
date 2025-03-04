@@ -1,4 +1,5 @@
 const { Player } = require('../objects/Player')
+const { AbilityManager } = require('./AbilityManager')
 
 class GameManager {
     static players = new Map() // KEY is username, value is PLAYER object
@@ -19,6 +20,10 @@ class GameManager {
         return this.players.get(username) || null
     }
 
+    static getAlivePlayers() {
+        return [...this.players.values()].filter(player => player.status === 'ALIVE')
+    }
+
     static removePlayer(username) {
         this.players.delete(username)
     }
@@ -37,6 +42,29 @@ class GameManager {
 
     static clearVisits() {
         this.players.forEach((player) => {player.clearVisitors()})
+    }
+
+    static concludePhase() {
+        AbilityManager.processPhaseEnd()
+        if (phaseType === 'DAY') {phaseType = 'NIGHT'}
+        else if (phaseType === 'NIGHT') {
+            phaseType = 'DAY'
+            this.phaseNumber++
+        }
+    }
+
+    static startPhase() {
+        // CREATE NEW DAY PHASE CHAT
+    }
+
+    static startGame() {
+        phaseType = 'DAY'
+        phaseNumber = 1
+        // ROLE DISTRIBUTION LOGIC
+        this.players.forEach((player) => {
+            player.notif(`Welcome to ${this.phaseType} PHASE ${this.phaseNumber}!`)
+            player.setStatus('ALIVE')
+        })
     }
 }
 

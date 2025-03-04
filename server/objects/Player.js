@@ -38,11 +38,15 @@ class Player {
         this.visitors.clear()
     }
 
-    notify(notificationText) {
+    notif(notificationText) {
         const key = `${GameManager.phaseType}-${GameManager.phaseNumber}`
         const oldNotifs = this.notifications.get(key) || []
         const newNotifs = [...oldNotifs, notificationText]
         this.notifications.set(key, newNotifs)
+    }
+
+    setStatus(newStatus) {
+        this.status = newStatus
     }
 }
 
