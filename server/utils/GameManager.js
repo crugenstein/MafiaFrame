@@ -1,8 +1,8 @@
 const { Player } = require('../objects/Player')
 
 class GameManager {
-    static players = {} // KEY is username, value is PLAYER object
-    static sharedChats = {}
+    static players = new Map() // KEY is username, value is PLAYER object
+    static sharedChats = new Map() // KEY is chatId, value is SHAREDCHAT object
 
     static gameStatus = 'LOBBY_WAITING' // 'LOBBY_WAITING', 'IN_PROGRESS', or 'GAME_FINISHED'
     static phaseType = 'LOBBY' // 'LOBBY', 'DAY', or 'NIGHT'
@@ -10,21 +10,21 @@ class GameManager {
     static phaseTimeLeft = 15 // in seconds 
 
     static instantiatePlayer(socketId, username) {
-        if (this.players[username]) return "Username already taken!"
+        if (this.players.has(username)) return "Username already taken!"
         const newPlayer = new Player(socketId, username)
-        this.players[username] = newPlayer
+        this.players.set(username, newPlayer)
     }
 
     static getPlayer(username) {
-        return this.players[username]
+        return this.players.get(username) || null
     }
 
     static removePlayer(username) {
-        delete this.players[username]
+        this.players.delete(username)
     }
 
     static getPlayerFromSocketId(socketId) {
-        return Object.values(this.players).find(player => player.socketId === socketId) || null
+        return [...this.players.values()].find(player => player.socketId === socketId) || null
     }
 
     static registerVisit(visitorName, targetName) {
@@ -36,7 +36,7 @@ class GameManager {
     }
 
     static clearVisits() {
-        
+        this.players.forEach((player) => {player.clearVisitors()})
     }
 }
 
