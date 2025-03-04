@@ -11,13 +11,13 @@ class AbilityManager {
         this.queue.sort((a, b) => a.ability.priority - b.ability.priority)
         this.queue.forEach( ({user, ability, targetData}) => {
             if (user) {
-                if (ability.selections == ["SELECT_SINGLE_PLAYER_TARGET"]) {
+                if (JSON.stringify(ability.selections) === JSON.stringify(["SELECT_SINGLE_PLAYER_TARGET"]) && !ability.tags.has(["ASTRAL"])) {
                     GameManager.registerVisit(user, targetData[0])
                 }
             }
         })
         this.queue.forEach( ({user, ability, targetData}) => {
-            if (ability.selections == ["SELECT_SINGLE_PLAYER_TARGET"]) {
+            if (JSON.stringify(ability.selections) === JSON.stringify(["SELECT_SINGLE_PLAYER_TARGET"])) {
                 ability.effect({user, target: targetData[0]})
             }
         })
