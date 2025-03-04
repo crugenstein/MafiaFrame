@@ -8,7 +8,8 @@ const abilityDictionary = {
 
         },
         selections: ["SELECT_SINGLE_PLAYER_TARGET"],
-        tags: new Set(["NIGHT"])
+        tags: new Set(["NIGHT"]),
+        priority: 6
     },
     "PLACEHOLDER_MAFIA_KILL": {
         name: "Attack (PLACEHOLDER)",
@@ -17,7 +18,8 @@ const abilityDictionary = {
 
         },
         selections: ["SELECT_SINGLE_PLAYER_TARGET"],
-        tags: new Set(["DESIGNATED", "NIGHT"])
+        tags: new Set(["DESIGNATED", "NIGHT"]),
+        priority: 9
     },
     "PLACEHOLDER_PROTECT": {
         name: "Protect (PLACEHOLDER)",
@@ -26,7 +28,8 @@ const abilityDictionary = {
 
         },
         selections: ["SELECT_SINGLE_PLAYER_TARGET"],
-        tags: new Set(["NIGHT"])
+        tags: new Set(["NIGHT"]),
+        priority: 3
     }
 }
 
