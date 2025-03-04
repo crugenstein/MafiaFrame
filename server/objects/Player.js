@@ -1,15 +1,19 @@
 const { roleDictionary } = require('../data/roles')
+const { GameManager } = require('../utils/GameManager')
 const { PhaseAbility } = require('./PhaseAbility')
 
 class Player {
-    constructor(socketId) {
+    constructor(socketId, username) {
         this.socketId = socketId
+        this.username = username
         
         this.status = 'SPEC'  // 'ALIVE', 'DEAD', or 'SPEC'
         this.admin = false
 
         this.role = null
         this.activeAbilities = [] // {ability: ActiveAbility, usesLeft: INT}
+
+        this.visitors = new Set()
     }
 
     assignRole(roleKey) {
@@ -22,6 +26,14 @@ class Player {
                 usesLeft: abilityCount
             }
         })
+    }
+
+    addVisitor(visitor) {
+        this.visitors.add(visitor)
+    }
+    
+    clearVisitors() {
+        this.visitors.clear()
     }
 }
 
