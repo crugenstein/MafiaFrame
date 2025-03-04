@@ -72,6 +72,7 @@ class GameManager {
     }
 
     static startGame() {
+        gameStatus = 'IN_PROGRESS'
         phaseType = 'DAY'
         phaseNumber = 1
         // ROLE DISTRIBUTION LOGIC
