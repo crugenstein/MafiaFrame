@@ -30,7 +30,7 @@ const socketEvents = (io, socket) => {
         }
     })
 
-    socket.on('DISCONNECT', () => {
+    socket.on('DISCONNECT', () => { // TODO!!!
 
     })
 
