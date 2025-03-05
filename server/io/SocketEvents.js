@@ -58,7 +58,9 @@ const socketEvents = (io, socket) => {
 
     socket.on('CLICK_VOTE_ACTION', ( { voteTargetUsername }) => {
         if (IOVerifier.verifyVote(socket.id, voteTargetUsername)) {
-            
+            const voter = GameManager.getPlayerFromSocketId(socket.id)
+            const target = GameManager.getPlayer(voteTargetUsername)
+            GameManager.registerVote(voter, target)
         } else {
             //throw an error
         }
