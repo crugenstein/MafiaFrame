@@ -5,6 +5,7 @@ const { AbilityManager } = require('./AbilityManager')
 class GameManager {
     static players = new Map() // KEY is username, value is PLAYER object
     static sharedChats = new Map() // KEY is chatId, value is SHAREDCHAT object
+    static votes = new Map() // KEY is username, value is VOTE TARGET
 
     static gameStatus = 'LOBBY_WAITING' // 'LOBBY_WAITING', 'IN_PROGRESS', or 'GAME_FINISHED'
     static phaseType = 'LOBBY' // 'LOBBY', 'DAY', or 'NIGHT'
@@ -33,6 +34,10 @@ class GameManager {
         return [...this.players.values()].find(player => player.socketId === socketId) || null
     }
 
+    static getSharedChat(chatId) {
+        return this.sharedChats.get(chatId) || null
+    }
+
     static registerVisit(visitor, target) {
         target.addVisitor(visitor)
     }
@@ -46,6 +51,11 @@ class GameManager {
             victim.setStatus('DEAD')
             return true
         }
+    }
+
+    static registerWhisper(sender, recipient, contents) {
+        sender.setWhispers(sender.getWhisperCount() - 1)
+        recipient.notif(`A whisper from ${sender.username}: ${contents}`)
     }
 
     static createSharedChat(chatId, readers = [], writers = []) {

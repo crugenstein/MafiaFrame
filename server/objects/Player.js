@@ -14,6 +14,7 @@ class Player {
         this.activeAbilities = [] // {ability: ActiveAbility, usesLeft: INT}
         this.baseDefense = 0
         this.defense = 0
+        this.whispers = 3
 
         this.visitors = new Set()
 
@@ -47,6 +48,7 @@ class Player {
         const oldNotifs = this.notifications.get(key) || []
         const newNotifs = [...oldNotifs, notificationText]
         this.notifications.set(key, newNotifs)
+        //notif io prolly
     }
 
     setStatus(newStatus) {
@@ -72,6 +74,20 @@ class Player {
     getDefense() {
         return this.defense
     }
+
+    spendAbilityUsage(ability) {
+        const abilityData = this.activeAbilities.find(a => a.ability === ability)
+        abilityData.usesLeft--
+    }
+
+    setWhispers(whisperCount) {
+        this.whispers = whisperCount
+    }
+    
+    getWhisperCount() {
+        return this.whispers
+    }
+
 }
 
 module.exports = { Player }
