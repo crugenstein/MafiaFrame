@@ -5,7 +5,8 @@ const { AbilityManager } = require('./AbilityManager')
 class GameManager {
     static players = new Map() // KEY is username, value is PLAYER object
     static sharedChats = new Map() // KEY is chatId, value is SHAREDCHAT object
-    static votes = new Map() // KEY is username, value is VOTE TARGET
+    static votes = new Map() // KEY is username, value is VOTE TARGET username
+    static voteCounts = new Map() // KEY is username, value is voteCount
 
     static gameStatus = 'LOBBY_WAITING' // 'LOBBY_WAITING', 'IN_PROGRESS', or 'GAME_FINISHED'
     static phaseType = 'LOBBY' // 'LOBBY', 'DAY', or 'NIGHT'
@@ -23,7 +24,7 @@ class GameManager {
     }
 
     static getAlivePlayers() {
-        return [...this.players.values()].filter(player => player.status === 'ALIVE')
+        return [...this.players.values()].filter(player => player.getStatus() === 'ALIVE')
     }
 
     static removePlayer(username) {
@@ -31,7 +32,7 @@ class GameManager {
     }
 
     static getPlayerFromSocketId(socketId) {
-        return [...this.players.values()].find(player => player.socketId === socketId) || null
+        return [...this.players.values()].find(player => player.getSocketId() === socketId) || null
     }
 
     static getSharedChat(chatId) {
@@ -55,7 +56,24 @@ class GameManager {
 
     static registerWhisper(sender, recipient, contents) {
         sender.setWhispers(sender.getWhisperCount() - 1)
-        recipient.notif(`A whisper from ${sender.username}: ${contents}`)
+        recipient.notif(`A whisper from ${sender.getUsername()}: ${contents}`)
+    }
+
+    static registerVote(voter, target) {
+        const currentVote = this.votes.get(voter.getUsername()) || null
+        if (currentVote) {
+            this.revokeVote(voter)
+        }
+        this.votes.set(voter.getUsername(), target.getUsername())
+        this.voteCounts.set(target.getUsername(), this.voteCounts.get(target.getUsername()) + 1)
+        // check if enough to axe
+    }
+
+    static revokeVote(voter) {
+        const currentTarget = this.votes.get(voter.getUsername())
+        this.votes.get(voter.getUsername()) = null
+        this.voteCounts.set(currentTarget, this.voteCounts.get(currentTarget) - 1)
+        //send a message in DP saying player revoked vote
     }
 
     static createSharedChat(chatId, readers = [], writers = []) {

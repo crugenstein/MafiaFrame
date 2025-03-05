@@ -58,7 +58,7 @@ const socketEvents = (io, socket) => {
 
     socket.on('CLICK_VOTE_ACTION', ( { voteTargetUsername }) => {
         if (IOVerifier.verifyVote(socket.id, voteTargetUsername)) {
-
+            
         } else {
             //throw an error
         }

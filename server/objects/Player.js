@@ -88,6 +88,14 @@ class Player {
         return this.whispers
     }
 
+    getSocketId() {
+        return this.socketId
+    }
+
+    getStatus() {
+        return this.status
+    }
+
 }
 
 module.exports = { Player }
