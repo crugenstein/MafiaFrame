@@ -11,7 +11,7 @@ class Player {
         this.admin = false
 
         this.role = null
-        this.activeAbilities = [] // {ability: ActiveAbility, usesLeft: INT}
+        this.activeAbilities = new Map() // KEY: uuid, VALUE: PhaseAbility object
         this.baseDefense = 0
         this.defense = 0
         this.whispers = 3
@@ -25,12 +25,11 @@ class Player {
         const roleData = roleDictionary[roleKey]
         this.role = roleData
 
-        this.activeAbilities = roleData.abilities.map( ({abilityKey, abilityCount} ) => {
-            return {
-                ability: new PhaseAbility(abilityKey),
-                usesLeft: abilityCount
-            }
+        roleData.abilities.forEach( ({abilityKey, abilityCount} ) => {
+            const newAbility = new PhaseAbility(abilityKey, abilityCount)
+            this.activeAbilities.set(newAbility.id, newAbility)
         })
+
         this.baseDefense = roleData.defense
         this.defense = this.baseDefense
     }
@@ -75,8 +74,8 @@ class Player {
         return this.defense
     }
 
-    spendAbilityUsage(ability) {
-        const abilityData = this.activeAbilities.find(a => a.ability === ability)
+    spendAbilityUsage(abilityUUID) {
+        const abilityData = this.activeAbilities.get(abilityUUID)
         abilityData.usesLeft--
     }
 
