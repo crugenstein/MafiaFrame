@@ -32,6 +32,18 @@ class IOManager {
             console.log('ERROR: NO IO TO EMIT TO PLAYER')
         }
     }
+
+    static addPlayerToRoom(username, roomId) {
+        const socketId = GameManager.getPlayer(username)
+        const socket = this.io.sockets.sockets.get(socketId)
+        socket.join(roomId)
+    }
+    
+    static removePlayerFromRoom(username, roomId) {
+        const socketId = GameManager.getPlayer(username)
+        const socket = this.io.sockets.sockets.get(socketId)
+        socket.leave(roomId)
+    }
 }
 
 module.exports = { IOManager }

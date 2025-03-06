@@ -1,3 +1,5 @@
+const { IOManager } = require('../io/IOManager')
+
 class SharedChat {
     constructor(chatId) {
         this.chatId = chatId
@@ -6,28 +8,30 @@ class SharedChat {
         this.messages = []
     }
 
-    addReader(player) {
-        this.readers.add(player)
+    addReader(playerName) {
+        this.readers.add(playerName)
+        IOManager.addPlayerToRoom(playerName, this.chatId)
     }
 
-    addWriter(player) {
-        this.writers.add(player)
+    addWriter(playerName) {
+        this.writers.add(playerName)
     }
 
-    canRead(player) {
-        return this.readers.has(player)
+    canRead(playerName) {
+        return this.readers.has(playerName)
     }
 
-    canWrite(player) {
-        return this.writers.has(player)
+    canWrite(playerName) {
+        return this.writers.has(playerName)
     }
 
-    revokeRead(player) {
-        this.readers.delete(player)
+    revokeRead(playerName) {
+        this.readers.delete(playerName)
+        IOManager.removePlayerFromRoom(playerName, this.chatId)
     }
 
-    revokeWrite(player) {
-        this.writers.delete(player)
+    revokeWrite(playerName) {
+        this.writers.delete(playerName)
     }
 
     getMessages() {
@@ -36,6 +40,7 @@ class SharedChat {
 
     addMessage(message) {
         this.messages = [...this.messages, message]
+        IOManager.emitToChat(this.chatId, 'NEW_MESSAGE', message)
     }
 
 }
