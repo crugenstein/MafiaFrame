@@ -11,10 +11,17 @@ class SharedChat {
     addReader(playerName) {
         this.readers.add(playerName)
         IOManager.addPlayerToRoom(playerName, this.chatId)
+        IOManager.emitToPlayer(playerName, 'NEW_CHAT_READ_ACCESS', {chatId: this.chatId})
     }
 
     addWriter(playerName) {
         this.writers.add(playerName)
+        IOManager.emitToPlayer(playerName, 'NEW_CHAT_WRITE_ACCESS', {chatId: this.chatId})
+    }
+
+    addRW(playerName) {
+        this.addReader(playerName)
+        this.addWriter(playerName)
     }
 
     canRead(playerName) {
@@ -28,10 +35,17 @@ class SharedChat {
     revokeRead(playerName) {
         this.readers.delete(playerName)
         IOManager.removePlayerFromRoom(playerName, this.chatId)
+        IOManager.emitToPlayer(playerName, 'LOST_CHAT_READ_ACCESS', {chatId: this.chatId})
     }
 
     revokeWrite(playerName) {
         this.writers.delete(playerName)
+        IOManager.emitToPlayer(playerName, 'LOST_CHAT_WRITE_ACCESS', {chatId: this.chatId})
+    }
+
+    revokeRW(playerName) {
+        this.revokeRead(playerName)
+        this.revokeWrite(playerName)
     }
 
     getMessages() {

@@ -78,8 +78,8 @@ class GameManager {
 
     static createSharedChat(chatId, readers = [], writers = []) {
         const newChat = new SharedChat(chatId)
-        readers.forEach((player) => {newChat.addReader(player)})
-        writers.forEach((player) => {newChat.addWriter(player)})
+        readers.forEach((player) => {newChat.addReader(player.getUsername())})
+        writers.forEach((player) => {newChat.addWriter(player.getUsername())})
         this.sharedChats.set(chatId, newChat)
     }
 
@@ -96,7 +96,7 @@ class GameManager {
             const key = `DAY-${this.phaseNumber}`
             const prevDP = this.sharedChats.get(key)
             this.players.forEach((player) => {
-                prevDP.revokeWrite(player)
+                prevDP.revokeWrite(player.getUsername())
             })
             phaseType = 'NIGHT'
         }
