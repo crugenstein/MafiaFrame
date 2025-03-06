@@ -1,6 +1,7 @@
 const { roleDictionary } = require('../data/roles')
 const { GameManager } = require('../utils/GameManager')
 const { PhaseAbility } = require('./PhaseAbility')
+const { IOManager } = require('../io/IOManager')
 
 class Player {
     constructor(socketId, username) {
@@ -47,7 +48,7 @@ class Player {
         const oldNotifs = this.notifications.get(key) || []
         const newNotifs = [...oldNotifs, notificationText]
         this.notifications.set(key, newNotifs)
-        //notif io prolly
+        IOManager.emitToPlayer(this.username, 'RECEIVE_NOTIF', {time: key, text: notificationText})
     }
 
     setStatus(newStatus) {
@@ -77,6 +78,7 @@ class Player {
     spendAbilityUsage(abilityUUID) {
         const abilityData = this.activeAbilities.get(abilityUUID)
         abilityData.usesLeft--
+        IOManager.emitToPlayer(this.username, 'ABILITY_CHANGE', {}) // Does this really need anything else?
     }
 
     setWhispers(whisperCount) {

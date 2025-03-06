@@ -1,14 +1,16 @@
 const { AbilityManager } = require('../utils/AbilityManager')
 const { GameManager } = require('../utils/GameManager')
 const { IOVerifier } = require('./IOVerifier')
+const { IOManager } = require('./IOManager')
 
-const socketEvents = (io, socket) => {
+const socketEvents = (socket) => {
 
     socket.on('CLICK_JOIN_GAME', ({ username }) => {
+
+        const joinMessage = { senderUsername: '[SERVER]', contents: `${username} connected.`}
         
         if (gameStatus === 'LOBBY_WAITING') {
             const lobbyChat = GameManager.getSharedChat('lobby')
-            const joinMessage = { senderUsername: '[SERVER]', contents: `${username} connected.`}
             GameManager.instantiatePlayer(socket.id, username)
             const newPlayer = GameManager.getPlayer(username)
             lobbyChat.addMessage(joinMessage)
@@ -17,7 +19,7 @@ const socketEvents = (io, socket) => {
         } // handle different logic if game has already started
 
         //below are temp to frontend io
-        io.to('lobby').emit('receive_message', { sender: '[SERVER]', contents: username + ' connected.', receivingChatId: 'lobby' })
+        IOManager.emitToChat('lobby', 'RECEIVE_MESSAGE', {message: joinMessage, receivingChat: 'lobby'})
         io.emit('CLIENT_PLAYER_ENTER_LOBBY', { username })
     })
 
