@@ -95,6 +95,10 @@ class Player {
         return this.status
     }
 
+    getAbility(abilityUUID) {
+        return this.activeAbilities.get(abilityUUID)
+    }
+
 }
 
 module.exports = { Player }

@@ -34,9 +34,10 @@ const socketEvents = (io, socket) => {
 
     })
 
-    socket.on('CLICK_SUBMIT_ABILITY', ({ ability, targetData }) => {
-        if (IOVerifier.verifySubmitAbility(socket.id, ability, targetData)) {
+    socket.on('CLICK_SUBMIT_ABILITY', ({ abilityUUID, targetData }) => {
+        if (IOVerifier.verifySubmitAbility(socket.id, abilityUUID, targetData)) {
             const abilityUser = GameManager.getPlayerFromSocketId(socket.id)
+            const ability = abilityUser.getAbility(abilityUUID)
             AbilityManager.queueAbility(abilityUser, ability, targetData)
             abilityUser.spendAbilityUsage(ability)
             //should send io back to client updating the ability counts
