@@ -39,7 +39,7 @@ const socketEvents = (io, socket) => {
             const abilityUser = GameManager.getPlayerFromSocketId(socket.id)
             AbilityManager.queueAbility(abilityUser, ability, targetData)
             abilityUser.spendAbilityUsage(ability)
-            //other stuff?
+            //should send io back to client updating the ability counts
         } else {
             //throw an error
         }
