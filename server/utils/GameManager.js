@@ -27,6 +27,14 @@ class GameManager {
         return [...this.players.values()].filter(player => player.getStatus() === 'ALIVE')
     }
 
+    static getAllUsernames() {
+        return [...this.players.values()].map(player => player.getUsername())
+    }
+
+    static getAlivePlayerUsernames() {
+        return [...this.players.values()].filter(player => player.getStatus() === 'ALIVE').map(player => player.getUsername())
+    }
+
     static removePlayer(username) {
         this.players.delete(username)
     }
@@ -39,11 +47,17 @@ class GameManager {
         return this.sharedChats.get(chatId) || null
     }
 
-    static registerVisit(visitor, target) {
+    static registerVisit(visitorName, targetName) {
+        const visitor = this.getPlayer(visitorName)
+        const target = this.getPlayer(targetName)
+
         target.addVisitor(visitor)
     }
 
-    static registerAttack(attacker, victim, attackStrength, specialProperties = []) {
+    static registerAttack(attackerName, victimName, attackStrength, specialProperties = []) {
+        const attacker = this.getPlayer(attackerName)
+        const victim = this.getPlayer(victimName)
+
         if (victim.getDefense() >= attackStrength) {
             victim.notif(`You were attacked, but your defense level overwhelmed the assailant!`)
             return false
@@ -54,32 +68,38 @@ class GameManager {
         }
     }
 
-    static registerWhisper(sender, recipient, contents) {
+    static registerWhisper(senderName, recipientName, contents) {
+        const sender = this.getPlayer(senderName)
+        const recipient = this.getPlayer(recipientName)
+
         sender.setWhispers(sender.getWhisperCount() - 1)
-        recipient.notif(`A whisper from ${sender.getUsername()}: ${contents}`)
+        recipient.notif(`A whisper from ${senderName}: ${contents}`)
     }
 
-    static registerVote(voter, target) {
-        const currentVote = this.votes.get(voter.getUsername()) || null
+    static registerVote(voterName, targetName) {
+        const voter = this.getPlayer(voterName)
+        const target = this.getPlayer(targetName)
+
+        const currentVote = this.votes.get(voterName) || null
         if (currentVote) {
             this.revokeVote(voter)
         }
-        this.votes.set(voter.getUsername(), target.getUsername())
-        this.voteCounts.set(target.getUsername(), this.voteCounts.get(target.getUsername()) + 1)
+        this.votes.set(voterName, targetName)
+        this.voteCounts.set(targetName, this.voteCounts.get(targetName) + 1)
         // check if enough to axe
     }
 
-    static revokeVote(voter) {
-        const currentTarget = this.votes.get(voter.getUsername())
-        this.votes.get(voter.getUsername()) = null
-        this.voteCounts.set(currentTarget, this.voteCounts.get(currentTarget) - 1)
+    static revokeVote(voterName) {
+        const voter = this.getPlayer(voterName)
+
+        const currentTargetName = this.votes.get(voterName)
+        this.voteCounts.set(currentTargetName, this.voteCounts.get(currentTargetName) - 1)
+        this.votes.set(voterName, null)
         //send a message in DP saying player revoked vote
     }
 
-    static createSharedChat(chatId, readers = [], writers = []) {
-        const newChat = new SharedChat(chatId)
-        readers.forEach((player) => {newChat.addReader(player.getUsername())})
-        writers.forEach((player) => {newChat.addWriter(player.getUsername())})
+    static createSharedChat(chatId, readerNames = [], writerNames = []) {
+        const newChat = new SharedChat(chatId, readerNames, writerNames)
         this.sharedChats.set(chatId, newChat)
     }
 
@@ -110,7 +130,7 @@ class GameManager {
     static startPhase() {
         if (this.phaseType === 'DAY') {
             const key = `DAY-${this.phaseNumber}`
-            this.createSharedChat(key, [...this.players.values()], this.getAlivePlayers())
+            this.createSharedChat(key, this.getAllUsernames(), this.getAlivePlayerUsernames())
             this.players.forEach((player) => {
                 player.notif(`Welcome to Day Phase ${this.phaseNumber}!`)
             })

@@ -1,10 +1,12 @@
 const { IOManager } = require('../io/IOManager')
 
 class SharedChat {
-    constructor(chatId) {
+    constructor(chatId, readers, writers) {
         this.chatId = chatId
         this.readers = new Set()
+        readers.forEach((readerName) => {this.addReader(readerName)})
         this.writers = new Set()
+        writers.forEach((writerName) => {this.addWriter(writerName)})
         this.messages = []
     }
 
