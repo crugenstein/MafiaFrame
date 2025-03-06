@@ -11,11 +11,9 @@ const socketEvents = (socket) => {
         
         if (gameStatus === 'LOBBY_WAITING') {
             const lobbyChat = GameManager.getSharedChat('lobby')
-            GameManager.instantiatePlayer(socket.id, username)
-            const newPlayer = GameManager.getPlayer(username)
+            const newPlayer = GameManager.instantiatePlayer(socket.id, username)
             lobbyChat.addMessage(joinMessage)
-            lobbyChat.addReader(newPlayer)
-            lobbyChat.addWriter(newPlayer)
+            lobbyChat.addRW(newPlayer.getUsername())
         } // handle different logic if game has already started
 
         //below are temp to frontend io
@@ -38,10 +36,10 @@ const socketEvents = (socket) => {
 
     socket.on('CLICK_SUBMIT_ABILITY', ({ abilityUUID, targetData }) => {
         if (IOVerifier.verifySubmitAbility(socket.id, abilityUUID, targetData)) {
-            const abilityUser = GameManager.getPlayerFromSocketId(socket.id)
-            const ability = abilityUser.getAbility(abilityUUID)
-            AbilityManager.queueAbility(abilityUser, ability, targetData)
-            abilityUser.spendAbilityUsage(ability)
+            const user = GameManager.getPlayerFromSocketId(socket.id)
+            const ability = user.getAbility(abilityUUID)
+            AbilityManager.queueAbility(user.getUsername(), abilityUUID, targetData)
+            ability.spendUsage()
             //should send io back to client updating the ability counts
         } else {
             //throw an error
@@ -50,9 +48,8 @@ const socketEvents = (socket) => {
 
     socket.on('CLICK_WHISPER_ACTION', ({ recipientUsername, contents }) => {
         if (IOVerifier.verifySendWhisper(socket.id, recipientUsername, contents)) {
-            const whisperSender = GameManager.getPlayerFromSocketId(socket.id)
-            const whisperRecipient = GameManager.getPlayer(recipientUsername)
-            GameManager.registerWhisper(whisperSender, whisperRecipient, contents)
+            const senderUsername = GameManager.getPlayerFromSocketId(socket.id).getUsername()
+            GameManager.registerWhisper(senderUsername, recipientUsername, contents)
         } else {
             //throw an error
         }
@@ -61,9 +58,8 @@ const socketEvents = (socket) => {
 
     socket.on('CLICK_VOTE_ACTION', ( { voteTargetUsername }) => {
         if (IOVerifier.verifyVote(socket.id, voteTargetUsername)) {
-            const voter = GameManager.getPlayerFromSocketId(socket.id)
-            const target = GameManager.getPlayer(voteTargetUsername)
-            GameManager.registerVote(voter, target)
+            const voterUsername = GameManager.getPlayerFromSocketId(socket.id).getUsername()
+            GameManager.registerVote(voterUsername, voteTargetUsername)
         } else {
             //throw an error
         }
