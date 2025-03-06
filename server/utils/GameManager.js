@@ -17,6 +17,7 @@ class GameManager {
         if (this.players.has(username)) return "Username already taken!"
         const newPlayer = new Player(socketId, username)
         this.players.set(username, newPlayer)
+        return newPlayer
     }
 
     static getPlayer(username) {
