@@ -27,7 +27,7 @@ class Player {
         this.role = roleData
 
         roleData.abilities.forEach( ({abilityKey, abilityCount} ) => {
-            const newAbility = new PhaseAbility(abilityKey, abilityCount)
+            const newAbility = new PhaseAbility(this.username, abilityKey, abilityCount)
             this.activeAbilities.set(newAbility.id, newAbility)
         })
 
@@ -73,12 +73,6 @@ class Player {
 
     getDefense() {
         return this.defense
-    }
-
-    spendAbilityUsage(abilityUUID) {
-        const abilityData = this.activeAbilities.get(abilityUUID)
-        abilityData.usesLeft--
-        IOManager.emitToPlayer(this.username, 'ABILITY_CHANGE', {}) // Does this really need anything else?
     }
 
     setWhispers(whisperCount) {
