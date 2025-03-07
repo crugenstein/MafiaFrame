@@ -48,6 +48,14 @@ class GameManager {
         return this.sharedChats.get(chatId) || null
     }
 
+    static getPhaseType() {
+        return this.phaseType
+    }
+    
+    static getPhaseNumber() {
+        return this.phaseNumber
+    }
+
     static registerVisit(visitorName, targetName) {
         const visitor = this.getPlayer(visitorName)
         const target = this.getPlayer(targetName)
@@ -69,6 +77,8 @@ class GameManager {
         }
     }
 
+    //CLOCK RUNNING PASIVLEYTYYY
+
     static registerWhisper(senderName, recipientName, contents) {
         const sender = this.getPlayer(senderName)
         const recipient = this.getPlayer(recipientName)
@@ -83,7 +93,7 @@ class GameManager {
 
         const currentVote = this.votes.get(voterName) || null
         if (currentVote) {
-            this.revokeVote(voter)
+            this.revokeVote(voterName)
         }
         this.votes.set(voterName, targetName)
         this.voteCounts.set(targetName, this.voteCounts.get(targetName) + 1)
@@ -102,6 +112,13 @@ class GameManager {
     static createSharedChat(chatId, readerNames = [], writerNames = []) {
         const newChat = new SharedChat(chatId, readerNames, writerNames)
         this.sharedChats.set(chatId, newChat)
+    }
+
+    static isAlive(username) {
+        const player = this.getPlayer(username)
+        if (!player) return false
+        else if (player.getStatus() !== 'ALIVE') return false
+        return true
     }
 
     static clearPhaseLeftovers() {

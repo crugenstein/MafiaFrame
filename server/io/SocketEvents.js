@@ -7,6 +7,12 @@ const socketEvents = (socket) => {
 
     socket.on('CLICK_JOIN_GAME', ({ username }) => {
 
+        if (!IOVerifier.verifyJoinGame(socket.id, username)) {
+            console.log('Player tried joining with invalid username')
+            //THROW CLIENTSIDE ERROR
+            return
+        }
+
         const joinMessage = { senderUsername: '[SERVER]', contents: `${username} connected.`}
         
         if (gameStatus === 'LOBBY_WAITING') {
@@ -40,7 +46,6 @@ const socketEvents = (socket) => {
             const ability = user.getAbility(abilityUUID)
             AbilityManager.queueAbility(user.getUsername(), abilityUUID, targetData)
             ability.spendUsage()
-            //should send io back to client updating the ability counts
         } else {
             //throw an error
         }
@@ -62,6 +67,13 @@ const socketEvents = (socket) => {
             GameManager.registerVote(voterUsername, voteTargetUsername)
         } else {
             //throw an error
+        }
+    })
+
+    socket.on('CLICK_DA_VOTE_ACTION') ( ({ voteTargetUsername }) => {
+        if (IOVerifier.verifyDAVote(socket.id, voteTargetUsername)) {
+            const voterUsername = GameManager.getPlayerFromSocketId(socket.id).getUsername()
+            // register DA voet
         }
     })
 }

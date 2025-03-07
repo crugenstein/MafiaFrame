@@ -92,7 +92,11 @@ class Player {
     }
 
     getAbility(abilityUUID) {
-        return this.activeAbilities.get(abilityUUID)
+        return this.activeAbilities.get(abilityUUID) || null
+    }
+
+    getAlignment() {
+        return this.roleData.alignment
     }
 
 }

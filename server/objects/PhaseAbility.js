@@ -47,6 +47,10 @@ class PhaseAbility {
         return this.effect
     }
 
+    getUsesLeft() {
+        return this.usesLeft
+    }
+
     hasTag(tag) {
         return this.tags.has(tag)
     }
