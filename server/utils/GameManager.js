@@ -5,8 +5,12 @@ const { AbilityManager } = require('./AbilityManager')
 class GameManager {
     static players = new Map() // KEY is username, value is PLAYER object
     static sharedChats = new Map() // KEY is chatId, value is SHAREDCHAT object
+
     static votes = new Map() // KEY is username, value is VOTE TARGET username
     static voteCounts = new Map() // KEY is username, value is voteCount
+
+    static DAvotes = new Map() // same stuff as above but for mafia designated attacker
+    static DAvoteCounts = new Map()
 
     static gameStatus = 'LOBBY_WAITING' // 'LOBBY_WAITING', 'IN_PROGRESS', or 'GAME_FINISHED'
     static phaseType = 'LOBBY' // 'LOBBY', 'DAY', or 'NIGHT'
@@ -106,6 +110,28 @@ class GameManager {
         const currentTargetName = this.votes.get(voterName)
         this.voteCounts.set(currentTargetName, this.voteCounts.get(currentTargetName) - 1)
         this.votes.set(voterName, null)
+        //send a message in DP saying player revoked vote
+    }
+
+    static registerDAVote(voterName, targetName) {
+        const voter = this.getPlayer(voterName)
+        const target = this.getPlayer(targetName)
+
+        const currentVote = this.DAvotes.get(voterName) || null
+        if (currentVote) {
+            this.revokeDAVote(voterName)
+        }
+        this.DAvotes.set(voterName, targetName)
+        this.DAvoteCounts.set(targetName, this.DAvoteCounts.get(targetName) + 1)
+        // send a message in mafia chat about this prolly
+    }
+
+    static revokeDAVote(voterName) {
+        const voter = this.getPlayer(voterName)
+
+        const currentTargetName = this.DAvotes.get(voterName)
+        this.DAvoteCounts.set(currentTargetName, this.DAvoteCounts.get(currentTargetName) - 1)
+        this.DAvotes.set(voterName, null)
         //send a message in DP saying player revoked vote
     }
 

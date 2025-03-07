@@ -73,7 +73,9 @@ const socketEvents = (socket) => {
     socket.on('CLICK_DA_VOTE_ACTION') ( ({ voteTargetUsername }) => {
         if (IOVerifier.verifyDAVote(socket.id, voteTargetUsername)) {
             const voterUsername = GameManager.getPlayerFromSocketId(socket.id).getUsername()
-            // register DA voet
+            GameManager.registerDAVote(voterUsername, voteTargetUsername)
+        } else {
+            //throw an error
         }
     })
 }
