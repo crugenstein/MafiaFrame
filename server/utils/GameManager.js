@@ -11,6 +11,7 @@ class GameManager {
 
     static DAvotes = new Map() // same stuff as above but for mafia designated attacker
     static DAvoteCounts = new Map()
+    static designatedAttackerName = null
 
     static gameStatus = 'LOBBY_WAITING' // 'LOBBY_WAITING', 'IN_PROGRESS', or 'GAME_FINISHED'
     static phaseType = 'LOBBY' // 'LOBBY', 'DAY', or 'NIGHT'
@@ -58,6 +59,10 @@ class GameManager {
     
     static getPhaseNumber() {
         return this.phaseNumber
+    }
+
+    static getDesignatedAttackerName() {
+        return this.designatedAttackerName
     }
 
     static registerVisit(visitorName, targetName) {

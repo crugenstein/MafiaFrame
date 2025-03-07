@@ -32,6 +32,7 @@ class IOVerifier {
             if (!(Array.isArray(targetData) && targetData.length === 1)) return false
             const attemptedTarget = targetData[0]
             if (!GameManager.isAlive(attemptedTarget)) return false
+            if (ability.hasTag('DESIGNATED') && GameManager.getDesignatedAttackerName() !== user.getUsername()) return false
         }
         // other logic for other selection list types
         return true
