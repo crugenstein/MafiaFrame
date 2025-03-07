@@ -44,7 +44,7 @@ class Player {
     }
 
     notif(notificationText) {
-        const key = `${GameManager.phaseType}-${GameManager.phaseNumber}`
+        const key = `${GameManager.getPhaseType()}-${GameManager.getPhaseNumber()}`
         const oldNotifs = this.notifications.get(key) || []
         const newNotifs = [...oldNotifs, notificationText]
         this.notifications.set(key, newNotifs)

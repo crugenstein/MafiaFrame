@@ -8,6 +8,7 @@ class GameManager {
 
     static votes = new Map() // KEY is username, value is VOTE TARGET username
     static voteCounts = new Map() // KEY is username, value is voteCount
+    static votesNeededToAxe = Infinity
 
     static DAvotes = new Map() // same stuff as above but for mafia designated attacker
     static DAvoteCounts = new Map()
@@ -106,7 +107,7 @@ class GameManager {
         }
         this.votes.set(voterName, targetName)
         this.voteCounts.set(targetName, this.voteCounts.get(targetName) + 1)
-        // check if enough to axe
+        if (this.voteCounts.get(targetName) > this.votesNeededToAxe) this.axePlayer(targetName)
     }
 
     static revokeVote(voterName) {
@@ -116,6 +117,10 @@ class GameManager {
         this.voteCounts.set(currentTargetName, this.voteCounts.get(currentTargetName) - 1)
         this.votes.set(voterName, null)
         //send a message in DP saying player revoked vote
+    }
+
+    static axePlayer(targetName) {
+        //TODO
     }
 
     static registerDAVote(voterName, targetName) {
@@ -138,6 +143,26 @@ class GameManager {
         this.DAvoteCounts.set(currentTargetName, this.DAvoteCounts.get(currentTargetName) - 1)
         this.DAvotes.set(voterName, null)
         //send a message in DP saying player revoked vote
+    }
+
+    static electDA() {
+        let maxVotes = -Infinity
+        let maxVoters = new Set()
+
+        this.DAvoteCounts.forEach((voteCount, username) => {
+            if (voteCount > maxVotes) {
+                maxVotes = voteCount;
+                maxVoters.clear()
+                maxVoters.add(username)
+            } else if (voteCount === maxVotes) {
+                maxVoters.add(username)
+            }
+        })
+
+        const maxVoterArray = Array.from(maxVoters);
+        this.designatedAttackerName = maxVoterArray[Math.floor(Math.random() * maxVoterArray.length)]
+        const DA = this.getPlayer(this.designatedAttackerName)
+        DA.notif(`You have been selected as the Mafia's Designated Attacker.`) // temp
     }
 
     static createSharedChat(chatId, readerNames = [], writerNames = []) {
