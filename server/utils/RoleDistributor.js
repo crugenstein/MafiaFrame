@@ -6,7 +6,6 @@ const mafiaProportion = 0.3
 class RoleDistributor {
 
     static generate() {
-        let assignments = new Map() // KEY is username, value is Rolekey
         let mafiaRoles = []
         let townRoles = []
 
@@ -26,7 +25,7 @@ class RoleDistributor {
         }
 
         const assign = (playerName, roleKey) => {
-            assignments.set(playerName, roleKey)
+            GameManager.getPlayer(playerName).assignRole(roleKey)
             const role = roleDictionary[roleKey]
 
             if (role.alignment === 'MAFIA') {
@@ -66,9 +65,8 @@ class RoleDistributor {
                 const roleKey = townRoles[Math.floor(Math.random() * townRoles.length)]
                 assign(playerUsername, roleKey)
             }
+            
         })
-
-        return assignments
     }
 }
 
