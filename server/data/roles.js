@@ -6,7 +6,8 @@ const roleDictionary = {
         abilities: [
             {abilityKey: "PLACEHOLDER_INVESTIGATE", abilityCount: 2}
         ],
-        defense: 0
+        defense: 0,
+        unique: false
     },
     "PLACEHOLDER_GUARD": {
         name: "Guard (Placeholder)",
@@ -15,7 +16,8 @@ const roleDictionary = {
         abilities: [
             {abilityKey: "PLACEHOLDER_PROTECT", abilityCount: Infinity}
         ],
-        defense: 0
+        defense: 0,
+        unique: false
     },
     "PLACEHOLDER_MAFIOSO": {
         name: "Mafioso (Placeholder)",
@@ -24,7 +26,8 @@ const roleDictionary = {
         abilities: [
             {abilityKey: "PLACEHOLDER_MAFIA_KILL", abilityCount: Infinity}
         ],
-        defense: 0
+        defense: 0,
+        unique: false
     },
     "PLACEHOLDER_GODFATHER": {
         name: "Godfather (Placeholder)",
@@ -34,7 +37,8 @@ const roleDictionary = {
             {abilityKey: "PLACEHOLDER_MAFIA_KILL", abilityCount: Infinity},
             {abilityKey: "PLACEHOLDER_INVESTIGATE", abilityCount: 1}
         ],
-        defense: 1
+        defense: 1,
+        unique: true
     }
 }
 

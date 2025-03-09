@@ -14,7 +14,7 @@ class GameManager {
     static DAvoteCounts = new Map()
     static designatedAttackerName = null
 
-    static gameStatus = 'LOBBY_WAITING' // 'LOBBY_WAITING', 'LOBBY_COUNTDOWN', 'IN_PROGRESS', or 'GAME_FINISHED'
+    static gameStatus = 'LOBBY_WAITING' // 'LOBBY_WAITING', 'LOBBY_COUNTDOWN', 'ROLLOVER', 'IN_PROGRESS', or 'GAME_FINISHED'
     static phaseType = 'LOBBY' // 'LOBBY', 'DAY', or 'NIGHT'
     static phaseNumber = 0
     static phaseTimeLeft = 15 // in seconds
@@ -28,7 +28,7 @@ class GameManager {
             if (gameStatus === 'LOBBY_COUNTDOWN' || gameStatus === 'IN_PROGRESS') {
                 phaseTimeLeft--
             }
-            if (phaseTimeLeft === 0) {
+            if (phaseTimeLeft <= 0) {
                 if (gameStatus === 'LOBBY_COUNTDOWN') {
                     this.startGame()
                 } else if (gameStatus === 'IN_PROGRESS') {
@@ -50,6 +50,23 @@ class GameManager {
         const newPlayer = new Player(socketId, username)
         this.players.set(username, newPlayer)
         return newPlayer
+    }
+    
+    static startGame() {
+        gameStatus = 'ROLLOVER'
+        this.players.forEach((player) => {
+            player.setStatus('ALIVE')
+        })
+
+
+        gameStatus = 'IN_PROGRESS'
+        phaseType = 'DAY'
+        phaseNumber = 1
+        // ROLE DISTRIBUTION LOGIC
+        this.players.forEach((player) => {
+            player.setStatus('ALIVE')
+        })
+        this.startPhase()
     }
 
     static getPlayer(username) {
@@ -108,6 +125,7 @@ class GameManager {
             return false
         } else {
             victim.notif(`You were attacked!`)
+            this.killPlayer(victimName)
             victim.setStatus('DEAD')
             return true
         }
@@ -213,6 +231,7 @@ class GameManager {
     }
 
     static concludePhase() {
+        // there should be a grace period here probably
         AbilityManager.processPhaseEnd()
         if (phaseType === 'DAY') {
             const key = `DAY-${this.phaseNumber}`
@@ -238,17 +257,6 @@ class GameManager {
             })
         }
         //OTHER PHASE START LOGIC
-    }
-
-    static startGame() {
-        gameStatus = 'IN_PROGRESS'
-        phaseType = 'DAY'
-        phaseNumber = 1
-        // ROLE DISTRIBUTION LOGIC
-        this.players.forEach((player) => {
-            player.setStatus('ALIVE')
-        })
-        this.startPhase()
     }
 }
 
