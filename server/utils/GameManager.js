@@ -17,7 +17,24 @@ class GameManager {
     static gameStatus = 'LOBBY_WAITING' // 'LOBBY_WAITING', 'IN_PROGRESS', or 'GAME_FINISHED'
     static phaseType = 'LOBBY' // 'LOBBY', 'DAY', or 'NIGHT'
     static phaseNumber = 0
-    static phaseTimeLeft = 15 // in seconds 
+    static phaseTimeLeft = 15 // in seconds
+    
+    static gameLoopInterval = null
+    
+    static startGameLoop() { // HEARTBEAT RUN THIS WHEN THE PROGRAM STARTS
+        if (this.gameLoopInterval) return
+        this.gameLoopInterval = setInterval(() => {
+            // a second has passed
+            // TIMER LOGIC
+        }, 1000)
+    }
+
+    static stopGameLoop() {
+        if (this.gameLoopInterval) {
+            clearInterval(this.gameLoopInterval)
+            this.gameLoopInterval = null
+        }
+    }
 
     static instantiatePlayer(socketId, username) {
         if (this.players.has(username)) return "Username already taken!"
