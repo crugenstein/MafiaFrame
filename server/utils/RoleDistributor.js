@@ -15,6 +15,7 @@ class RoleDistributor {
                 const j = Math.floor(Math.random() * (i + 1))
                 [array[i], array[j]] = [array[j], array[i]]
             }
+            return array
         }
 
         const remove = (array, roleKey) => {
@@ -40,7 +41,7 @@ class RoleDistributor {
             }
         }
 
-        Object.values(roleDictionary).forEach(([key, role]) => {
+        Object.entries(roleDictionary).forEach(([key, role]) => {
             if (role.alignment === 'MAFIA') {
                 mafiaRoles.push(key)
             } else if (role.alignment === 'TOWN') {
@@ -49,7 +50,7 @@ class RoleDistributor {
         })
 
         const playerList = shuffle(GameManager.getAllUsernames())
-        const mafiaCount = Math.floor(playerList.length() * mafiaProportion)
+        const mafiaCount = Math.floor(playerList.length * mafiaProportion)
         let mafiasAssigned = 0
         let godfatherAssigned = false
 
