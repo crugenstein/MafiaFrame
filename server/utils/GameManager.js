@@ -14,22 +14,31 @@ class GameManager {
     static DAvoteCounts = new Map()
     static designatedAttackerName = null
 
-    static gameStatus = 'LOBBY_WAITING' // 'LOBBY_WAITING', 'IN_PROGRESS', or 'GAME_FINISHED'
+    static gameStatus = 'LOBBY_WAITING' // 'LOBBY_WAITING', 'LOBBY_COUNTDOWN', 'IN_PROGRESS', or 'GAME_FINISHED'
     static phaseType = 'LOBBY' // 'LOBBY', 'DAY', or 'NIGHT'
     static phaseNumber = 0
     static phaseTimeLeft = 15 // in seconds
+    static phaseLength = 150 // in seconds
     
     static gameLoopInterval = null
     
     static startGameLoop() { // HEARTBEAT RUN THIS WHEN THE PROGRAM STARTS
         if (this.gameLoopInterval) return
-        this.gameLoopInterval = setInterval(() => {
-            // a second has passed
-            // TIMER LOGIC
+        this.gameLoopInterval = setInterval(() => { // THIS HAPPENS EVERY SECOND
+            if (gameStatus === 'LOBBY_COUNTDOWN' || gameStatus === 'IN_PROGRESS') {
+                phaseTimeLeft--
+            }
+            if (phaseTimeLeft === 0) {
+                if (gameStatus === 'LOBBY_COUNTDOWN') {
+                    this.startGame()
+                } else if (gameStatus === 'IN_PROGRESS') {
+                    this.concludePhase()
+                }
+            }
         }, 1000)
     }
 
-    static stopGameLoop() {
+    static stopGameLoop() { // RUN THIS WHEN GAME CONCLUDES
         if (this.gameLoopInterval) {
             clearInterval(this.gameLoopInterval)
             this.gameLoopInterval = null
@@ -104,7 +113,9 @@ class GameManager {
         }
     }
 
-    //CLOCK RUNNING PASIVLEYTYYY
+    static killPlayer(victimName) {
+
+    }
 
     static registerWhisper(senderName, recipientName, contents) {
         const sender = this.getPlayer(senderName)
