@@ -26,7 +26,6 @@ class AbilityManager {
             }
         })
         this.queue = []
-        GameManager.clearPhaseLeftovers()
     }
 }
 

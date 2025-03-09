@@ -54,7 +54,8 @@ class SharedChat {
         return messages
     }
 
-    addMessage(message) {
+    addMessage(senderName, contents) {
+        const message = {senderName, contents, receiver: this.chatId}
         this.messages = [...this.messages, message]
         IOManager.emitToChat(this.chatId, 'NEW_MESSAGE', message)
     }

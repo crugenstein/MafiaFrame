@@ -13,7 +13,7 @@ const socketEvents = (socket) => {
             return
         }
 
-        const joinMessage = { senderUsername: '[SERVER]', contents: `${username} connected.`}
+        const joinMessage = { senderName: '[SERVER]', contents: `${username} connected.`}
         
         if (gameStatus === 'LOBBY_WAITING') {
             const lobbyChat = GameManager.getSharedChat('lobby')
@@ -22,15 +22,14 @@ const socketEvents = (socket) => {
             lobbyChat.addRW(newPlayer.getUsername())
         } // handle different logic if game has already started
 
-        //below are temp to frontend io
-        IOManager.emitToChat('lobby', 'RECEIVE_MESSAGE', {message: joinMessage, receivingChat: 'lobby'})
         io.emit('CLIENT_PLAYER_ENTER_LOBBY', { username })
     })
 
-    socket.on('CLICK_SEND_MESSAGE', ({ message, chatId }) => {
-        if (IOVerifier.verifyChatMessage(socket.id, message, chatId)) {
+    socket.on('CLICK_SEND_MESSAGE', ({ contents, chatId }) => {
+        if (IOVerifier.verifyChatMessage(socket.id, contents, chatId)) {
+            const senderName = GameManager.getPlayerFromSocketId(socket.id).getUsername()
+            const message = {senderName, contents}
             GameManager.getSharedChat(chatId).addMessage(message)
-            //addMessage should handle the io
         } else {
             //throw an error
         }

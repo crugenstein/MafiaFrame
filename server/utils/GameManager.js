@@ -1,6 +1,7 @@
 const { Player } = require('../objects/Player')
 const { SharedChat } = require('../objects/SharedChat')
 const { AbilityManager } = require('./AbilityManager')
+const { RoleDistributor } = require('./RoleDistributor')
 
 class GameManager {
     static players = new Map() // KEY is username, value is PLAYER object
@@ -21,6 +22,8 @@ class GameManager {
     static phaseLength = 150 // in seconds
     
     static gameLoopInterval = null
+
+    static diedLastNightNames = new Set()
     
     static startGameLoop() { // HEARTBEAT RUN THIS WHEN THE PROGRAM STARTS
         if (this.gameLoopInterval) return
@@ -29,10 +32,8 @@ class GameManager {
                 phaseTimeLeft--
             }
             if (phaseTimeLeft <= 0) {
-                if (gameStatus === 'LOBBY_COUNTDOWN') {
-                    this.startGame()
-                } else if (gameStatus === 'IN_PROGRESS') {
-                    this.concludePhase()
+                if (gameStatus === 'LOBBY_COUNTDOWN' || 'IN_PROGRESS') {
+                    this.nextPhase()
                 }
             }
         }, 1000)
@@ -51,22 +52,72 @@ class GameManager {
         this.players.set(username, newPlayer)
         return newPlayer
     }
-    
-    static startGame() {
-        gameStatus = 'ROLLOVER'
-        this.players.forEach((player) => {
-            player.setStatus('ALIVE')
-        })
 
+    static nextPhase() {
+        this.gameStatus = 'ROLLOVER'
+        const prevPhaseType = this.phaseType
 
-        gameStatus = 'IN_PROGRESS'
-        phaseType = 'DAY'
-        phaseNumber = 1
-        // ROLE DISTRIBUTION LOGIC
-        this.players.forEach((player) => {
-            player.setStatus('ALIVE')
-        })
-        this.startPhase()
+        if (prevPhaseType === 'LOBBY') { // this should only run when the game first starts
+            RoleDistributor.distribute()
+            this.players.forEach((player) => {
+                player.setStatus('ALIVE')
+            })
+            this.phaseNumber = 0
+            const mafiaList = this.getMafiaPlayerUsernames()
+            this.createSharedChat('mafia', mafiaList, mafiaList)
+        }
+        // what we do when the night ends and the next day starts (ALTERNATIVELY when the game starts)
+        if (prevPhaseType === 'NIGHT' || prevPhaseType === 'LOBBY') {
+            if (prevPhaseType === 'NIGHT') {
+                AbilityManager.processPhaseEnd()
+            }
+            this.phaseNumber++
+            this.phaseType = 'DAY'
+            const key = `DP-${this.phaseNumber}`
+            const alivePlayerList = this.getAlivePlayerUsernames()
+            // update number of votes needed to axe
+            if (phaseNumber === 1) {
+                this.votesNeededToAxe = Math.ceil(0.75 * alivePlayerList.length)
+            } else {
+                this.votesNeededToAxe = Math.ceil(0.5 * alivePlayerList.length)
+            }
+            // make dp chat
+            const newDP = this.createSharedChat(key, this.getAllUsernames())
+            // announce last night deaths
+            this.diedLastNightNames.forEach((name) => {
+                const message = {senderName: '[SERVER]', contents: `${name} died last night.`}
+                newDP.addMessage(message)
+            })
+            // basic intro messages in dp
+            newDP.addMessage(`Welcome to Day Phase ${this.phaseNumber}.`)
+            newDP.addMessage(`There are ${alivePlayerList.length} players remaining.`)
+            newDP.addMessage(`It will take ${this.votesNeededToAxe} votes to Axe a player.`)
+            newDP.addMessage(`The Day Phase will end in ${this.phaseLength} seconds. Good luck!`)
+            // basic phase cleanup
+            alivePlayerList.forEach((playerName) => {
+                const player = this.getPlayer(playerName)
+                
+                player.setWhispers(3)
+                player.resetDefense()
+                player.clearVisitors()
+
+                newDP.addWriter(playerName)
+
+                this.votes.set(playerName, null)
+                this.voteCounts.set(playerName, 0)
+                this.DAvotes.set(playerName, null)
+                this.DAvoteCounts.set(playerName, 0)
+                this.designatedAttackerName = null
+            })
+            // no more rollover, we are done now
+            this.gameStatus = 'IN_PROGRESS'
+        } else if (this.phaseType === 'DAY') { // when the day phase ends. todo
+            
+            const oldDP = this.getSharedChat(`DP-${this.phaseNumber}`)
+            this.getAlivePlayerUsernames.forEach((playerName) => {
+                oldDP.revokeWrite(playerName)
+            })
+        }
     }
 
     static getPlayer(username) {
@@ -83,6 +134,10 @@ class GameManager {
 
     static getAlivePlayerUsernames() {
         return [...this.players.values()].filter(player => player.getStatus() === 'ALIVE').map(player => player.getUsername())
+    }
+
+    static getMafiaPlayerUsernames() {
+        return [...this.players.values()].filter(player => player.getAlignment() === 'MAFIA').map(player => player.getUsername())
     }
 
     static removePlayer(username) {
@@ -214,6 +269,7 @@ class GameManager {
     static createSharedChat(chatId, readerNames = [], writerNames = []) {
         const newChat = new SharedChat(chatId, readerNames, writerNames)
         this.sharedChats.set(chatId, newChat)
+        return newChat
     }
 
     static isAlive(username) {
@@ -248,16 +304,6 @@ class GameManager {
         this.startPhase()
     }
 
-    static startPhase() {
-        if (this.phaseType === 'DAY') {
-            const key = `DAY-${this.phaseNumber}`
-            this.createSharedChat(key, this.getAllUsernames(), this.getAlivePlayerUsernames())
-            this.players.forEach((player) => {
-                player.notif(`Welcome to Day Phase ${this.phaseNumber}!`)
-            })
-        }
-        //OTHER PHASE START LOGIC
-    }
 }
 
 module.exports = { GameManager }

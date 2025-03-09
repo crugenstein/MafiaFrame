@@ -3,9 +3,9 @@ const { roleDictionary } = require('../data/roles')
 
 const mafiaProportion = 0.3
 
-class RoleDistributor {
+class RoleDistributor { // this logic is temporary. This should be made more robust once frontend done
 
-    static generate() {
+    static distribute() {
         let mafiaRoles = []
         let townRoles = []
 
@@ -65,7 +65,6 @@ class RoleDistributor {
                 const roleKey = townRoles[Math.floor(Math.random() * townRoles.length)]
                 assign(playerUsername, roleKey)
             }
-            
         })
     }
 }
