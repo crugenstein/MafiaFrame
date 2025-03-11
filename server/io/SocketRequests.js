@@ -11,9 +11,11 @@ const socketRequests = (socket) => {
     socket.on('REQUEST_ABILITY_INFO', () => {
         const player = GameManager.getPlayerFromSocketId(socket.id)
         const abilityData = player.getAllAbilityData()
+        const abilitySlots = player.getAbilitySlots()
 
         IOManager.emitToPlayer(player.getUsername(), 'RECEIVE_ABILITY_INFO', {
-            abilityData
+            abilityData,
+            abilitySlots
         })
     })
 

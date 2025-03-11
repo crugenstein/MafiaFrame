@@ -58,11 +58,16 @@ class PhaseAbility {
 
     spendUsage() {
         this.usesLeft--
+        const owner = GameManager.getPlayer(this.ownerName)
         if (!this.hasTag('FREE')) {
-            const owner = GameManager.getPlayer(this.ownerName)
             owner.setAbilitySlots(owner.getAbilitySlots()-1)
         }
-        IOManager.emitToPlayer(this.ownerName, 'ABILITY_CHANGE', {}) // TODO
+        const abilityData = owner.getAllAbilityData()
+        const abilitySlots = owner.getAbilitySlots() 
+        IOManager.emitToPlayer(this.ownerName, 'UPDATE_ABILITY_INFO', {
+            abilityData,
+            abilitySlots  
+        })// TODO
     }
 
     getVisibleProperties() {
