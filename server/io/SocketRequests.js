@@ -30,7 +30,7 @@ const socketRequests = (socket) => {
 
         if (IOVerifier.verifyChatRead(socket.id, chatId)) {
             const chatMessages = GameManager.getSharedChat(chatId).getMessages()
-            IOManager.emitToPlayer(player.getUsername, 'RECEIVE_CHAT_MESSAGES', {
+            IOManager.emitToPlayer(player.getUsername(), 'RECEIVE_CHAT_MESSAGES', {
                 chatId,
                 messages: chatMessages
             })
@@ -40,7 +40,7 @@ const socketRequests = (socket) => {
     socket.on('REQUEST_SHARED_CHATS', () => {
         const player = GameManager.getPlayerFromSocketId(socket.id)
         
-        IOManager.emitToPlayer(player.getUsername, 'RECEIVE_SHARED_CHATS', {
+        IOManager.emitToPlayer(player.getUsername(), 'RECEIVE_SHARED_CHATS', {
             chatData: player.getReadableChatData()
         })
     })

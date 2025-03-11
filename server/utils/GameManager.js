@@ -64,20 +64,18 @@ class GameManager {
         const prevPhaseType = this.phaseType
 
         if (prevPhaseType === 'LOBBY') { // this should only run when the game first starts
+            prevPhaseType = 'NIGHT'
             RoleDistributor.distribute()
             this.players.forEach((player) => {
                 player.setStatus('ALIVE')
             })
-            this.phaseNumber = 0
             const mafiaList = this.getMafiaPlayerUsernames()
             this.createSharedChat('Mafia Chat', 'mafia', mafiaList, mafiaList)
-            // EMIT THE MAFIA PLAYERS THEIR TEAMMATES AND STUFF LOL HAHAH AHHAHAHA
+            // EMIT Stuff that should be available on game start
         }
         // what we do when the night ends and the next day starts (ALTERNATIVELY when the game starts)
-        if (prevPhaseType === 'NIGHT' || prevPhaseType === 'LOBBY') {
-            if (prevPhaseType === 'NIGHT') {
-                AbilityManager.processPhaseEnd()
-            }
+        if (prevPhaseType === 'NIGHT') {
+            AbilityManager.processPhaseEnd()
             this.phaseNumber++
             this.phaseType = 'DAY'
             const key = `DP-${this.phaseNumber}`
@@ -96,10 +94,10 @@ class GameManager {
                 newDP.addMessage(message)
             })
             // basic intro messages in dp
-            newDP.addMessage(`Welcome to Day Phase ${this.phaseNumber}.`)
-            newDP.addMessage(`There are ${alivePlayerList.length} players remaining.`)
-            newDP.addMessage(`It will take ${this.votesNeededToAxe} votes to Axe a player.`)
-            newDP.addMessage(`The Day Phase will end in ${this.phaseLength} seconds. Good luck!`)
+            newDP.addMessage({senderName: '[SERVER]', contents: `Welcome to Day Phase ${this.phaseNumber}.`})
+            newDP.addMessage({senderName: '[SERVER]', contents: `There are ${alivePlayerList.length} players remaining.`})
+            newDP.addMessage({senderName: '[SERVER]', contents: `It will take ${this.votesNeededToAxe} votes to Axe a player.`})
+            newDP.addMessage({senderName: '[SERVER]', contents: `The Day Phase will end in ${this.phaseLength} seconds. Good luck!`})
             // basic phase cleanup
             alivePlayerList.forEach((playerName) => {
                 const player = this.getPlayer(playerName)
@@ -116,19 +114,20 @@ class GameManager {
                 this.DAvoteCounts.set(playerName, 0)
                 this.designatedAttackerName = null
             })
-            // no more rollover, we are done now
-            this.gameStatus = 'IN_PROGRESS'
-        } else if (this.phaseType === 'DAY') { // when the day phase ends. todo
-            
+        } else if (prevPhaseType === 'DAY') { // when the day phase ends
             const oldDP = this.getSharedChat(`DP-${this.phaseNumber}`)
-            this.getAlivePlayerUsernames.forEach((playerName) => {
+            this.getAlivePlayerUsernames().forEach((playerName) => {
                 oldDP.revokeWrite(playerName)
             })
+            oldDP.addMessage({senderName: '[SERVER]', contents: `The Day Phase has ended. Night Phase ${this.phaseNumber} has begun!`})
+            AbilityManager.processPhaseEnd()
         }
+        // no more rollover, we are done now
+        this.gameStatus = 'IN_PROGRESS'
     }
 
     /**
-     * Creates a new Player.
+     * Gets a player from a username.
      * @param {string} username - The player's username.
      * @returns {Player} The player object associated with the username. Returns null if player does not exist.
      */
@@ -289,31 +288,6 @@ class GameManager {
         if (!player) return false
         else if (player.getStatus() !== 'ALIVE') return false
         return true
-    }
-
-    static clearPhaseLeftovers() {
-        this.players.forEach((player) => {
-            player.clearVisitors()
-            player.resetDefense()
-        })
-    }
-
-    static concludePhase() {
-        // there should be a grace period here probably
-        AbilityManager.processPhaseEnd()
-        if (phaseType === 'DAY') {
-            const key = `DAY-${this.phaseNumber}`
-            const prevDP = this.sharedChats.get(key)
-            this.players.forEach((player) => {
-                prevDP.revokeWrite(player.getUsername())
-            })
-            phaseType = 'NIGHT'
-        }
-        else if (phaseType === 'NIGHT') {
-            phaseType = 'DAY'
-            this.phaseNumber++
-        }
-        this.startPhase()
     }
 
 }

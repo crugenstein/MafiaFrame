@@ -17,6 +17,8 @@ class Player {
         this.defense = 0
         this.whispers = 3
 
+        this.abilitySlots = 1
+
         this.visitors = new Set()
 
         this.notifications = new Map()
@@ -134,6 +136,14 @@ class Player {
 
     getAllAbilityData() {
         return [...this.activeAbilities.values()].map(ability => ability.getVisibleProperties())
+    }
+
+    setAbilitySlots(actionsLeft) {
+        this.abilitySlots = actionsLeft
+    }
+
+    getAbilitySlots() {
+        return this.abilitySlots
     }
 }
 

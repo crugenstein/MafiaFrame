@@ -23,6 +23,7 @@ class IOVerifier {
         const ability = user.getAbility(abilityUUID)
         if (!ability) return false
         if (!ability.getUsesLeft() < 1) return false
+        if (!ability.hasTag('FREE') && user.getAbilitySlots() < 1) return false
         const phase = GameManager.getPhaseType()
         if (ability.hasTag('DAY') && phase !== 'DAY') return false
         else if (ability.hasTag('NIGHT') && phase !== 'NIGHT') return false
