@@ -35,7 +35,7 @@ class GameManager {
 
     /**
     * Keys are player names (strings) and values are vote data objects.
-    * @type {Map<string, {votedFor: string|null, votesReceived: number, DAVotedFor: string|null, DAvotesReceived: number}>}
+    * @type {Map<string, {votedFor: string|null, votesReceived: number, DAvotedFor: string|null, DAvotesReceived: number}>}
     */
     static _voteMap = new Map()
     static _votesNeededToAxe = Infinity // how many votes to axe someone?
@@ -409,6 +409,46 @@ class GameManager {
         if (newTargetData && (newTargetData.votesReceived > this._votesNeededToAxe)) {
             this.axePlayer(targetName)
         }
+    }
+
+    /**
+    * Registers a Designated Attacker vote.
+    * 
+    * @param {string} voterName - The name of the player casting the vote.
+    * @param {string|null} targetName - The name of the target. If null, represents a revoked vote.
+    */
+    static registerVote(voterName, targetName) {
+        if (!this.isAlive(voterName) || !this.isMafia(voterName)) {
+            console.error("Non-alive or nonexistent or non-mafia player attempted to cast DA vote.")
+            return
+        }
+        
+        const voterData = this._voteMap.get(voterName)
+        const oldTarget = voterData.DAvotedFor
+        let newTargetData = null
+
+        if (oldTarget) {
+            const oldTargetData = this._voteMap.get(oldTarget)
+            oldTargetData.DAvotesReceived--
+            this._voteMap.set(oldTarget, oldTargetData)
+        }
+
+        voterData.DAvotedFor = null
+
+        if (targetName) {
+            if (!this.isAlive(targetName) || !this.isMafia(targetName)) {
+                console.error("Player attempted to DA-vote for non-alive or nonexistent or non-mafia target")
+                return
+            }
+            newTargetData = this._voteMap.get(targetName)
+            newTargetData.DAvotesReceived++
+            voterData.DAvotedFor = targetName
+
+            this._voteMap.set(targetName, newTargetData)
+        }
+
+        this._voteMap.set(voterName, voterData)
+        IOManager.emitToMafia('DA_VOTE_CAST', {newVoteTarget: targetName, previousVoteTarget: oldTarget})
     }
 
     /**
