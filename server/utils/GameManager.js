@@ -238,30 +238,6 @@ class GameManager {
         this.nextPhase()
     }
 
-    static registerDAVote(voterName, targetName) {
-        const voter = this.getPlayer(voterName)
-        const target = this.getPlayer(targetName)
-
-        const currentVote = this.DAvotes.get(voterName) || null
-        if (currentVote) {
-            this.revokeDAVote(voterName)
-        }
-        this.DAvotes.set(voterName, targetName)
-        this.DAvoteCounts.set(targetName, this.DAvoteCounts.get(targetName) + 1)
-        this.getMafiaPlayerUsernames().forEach((username) => {
-            IOManager.emitToPlayer(username, 'DA_VOTE_UPDATE', {voteCountMap: this.DAvoteCounts})
-        })
-        // send a message in mafia chat about this prolly
-    }
-
-    static revokeDAVote(voterName) {
-        const voter = this.getPlayer(voterName)
-
-        const currentTargetName = this.DAvotes.get(voterName)
-        this.DAvoteCounts.set(currentTargetName, this.DAvoteCounts.get(currentTargetName) - 1)
-        this.DAvotes.set(voterName, null)
-    }
-
     static electDA() {
         let maxVotes = -Infinity
         let maxVoters = new Set()
@@ -461,6 +437,11 @@ class GameManager {
         IOManager.globalEmit('PHASE_TYPE_UPDATE', {phaseType: type})
     }
 
+    /**
+    * Returns the Phase Type.
+    * 
+    * @returns {number} - The Phase Type. Refer to GameManager enum for translation.
+    */
     static get phaseType() {return this._phaseType}
 
     /**
@@ -473,6 +454,11 @@ class GameManager {
         IOManager.globalEmit('GAME_STATUS_UPDATE', {gameStatus: status})
     }
 
+    /**
+    * Returns the Game Status.
+    * 
+    * @returns {number} - The Game Status. Refer to GameManager enum for translation.
+    */
     static get gameStatus() {return this._gameStatus}
 
     /**
@@ -485,6 +471,11 @@ class GameManager {
         IOManager.globalEmit('PHASE_NUMBER_UPDATE', {phaseNumber: number})
     }
 
+    /**
+    * Returns the Phase Number.
+    * 
+    * @returns {number} - The current phase number.
+    */
     static get phaseNumber() {return this._phaseNumber}
 
     /**
@@ -497,7 +488,12 @@ class GameManager {
         IOManager.globalEmit('PHASE_TIME_LEFT_UPDATE', {phaseTimeLeft: time})
     }
 
-    static get phaseLength() {return this._phaseLength}
+    /**
+    * Returns the time remaining in the phase, in seconds.
+    * 
+    * @returns {number} - Remaining phase time, in seconds.
+    */
+    static get phaseTimeLeft() {return this._phaseTimeLeft}
 
     /**
     * Sets the Phase Length.
@@ -507,6 +503,13 @@ class GameManager {
     static set phaseLength(length) {
         this._phaseLength = length
     }
+
+    /**
+    * Returns the Phase Length.
+    * 
+    * @returns {number} - The phase length, in seconds.
+    */
+    static get phaseLength() {return this._phaseLength}
 
 }
 
