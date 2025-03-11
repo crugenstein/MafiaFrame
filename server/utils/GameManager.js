@@ -19,6 +19,8 @@ const PhaseType = Object.freeze({
 })
 
 class GameManager {
+    static _gameLoopInterval = null
+
     static _phaseType = PhaseType.LOBBY
     static _gameStatus = GameStatus.LOBBY_WAITING
 
@@ -26,29 +28,18 @@ class GameManager {
     static _phaseTimeLeft = 15 // in seconds
     static _phaseLength = 150 // in seconds
 
-    static _playerNameMap = new Map()
-    static _playerSocketMap = new Map()
+    static _playerNameMap = new Map() // key: unique player name string, value is player object
+    static _playerSocketMap = new Map() // key: unique player socketid string, value is player name
 
-    static _sharedChats = new Map()
+    static _sharedChats = new Map() // key: unique sharedchat id, value is sharedchat object
 
-    static players = new Map() // KEY is username, value is PLAYER object
-    static sharedChats = new Map() // KEY is chatId, value is SHAREDCHAT object
-
-    static votes = new Map() // KEY is username, value is VOTE TARGET username
-    static voteCounts = new Map() // KEY is username, value is voteCount
-    static votesNeededToAxe = Infinity
-
-    static DAvotes = new Map() // same stuff as above but for mafia designated attacker
-    static DAvoteCounts = new Map()
-    static designatedAttackerName = null
-
-    static gameStatus = GameStatus.LOBBY_WAITING
-    static phaseType = PhaseType.LOBBY
-    static phaseNumber = 0
-    static phaseTimeLeft = 15 // in seconds
-    static phaseLength = 150 // in seconds
-    
-    static gameLoopInterval = null
+    /**
+    * Keys are player names (strings) and values are vote data objects.
+    * @type {Map<string, {votedFor: string|null, votesReceived: number, DAVotedFor: string|null, DAvotesReceived: number}>}
+    */
+    static _voteMap = new Map()
+    static _votesNeededToAxe = Infinity // how many votes to axe someone?
+    static _designatedAttacker = null // the name of the designated attacker
 
     static diedLastNightNames = new Set()
     
@@ -167,15 +158,6 @@ class GameManager {
         }
     }
 
-    /**
-     * Gets a player from a username.
-     * @param {string} username - The player's username.
-     * @returns {Player} The player object associated with the username. Returns null if player does not exist.
-     */
-    static getPlayer(username) {
-        return this.players.get(username) || null
-    }
-
     static getAlivePlayers() {
         return [...this.players.values()].filter(player => player.getStatus() === 'ALIVE')
     }
@@ -196,20 +178,8 @@ class GameManager {
         this.players.delete(username)
     }
 
-    static getPlayerFromSocketId(socketId) {
-        return [...this.players.values()].find(player => player.getSocketId() === socketId) || null
-    }
-
     static getSharedChat(chatId) {
         return this.sharedChats.get(chatId) || null
-    }
-
-    static getPhaseType() {
-        return this.phaseType
-    }
-    
-    static getPhaseNumber() {
-        return this.phaseNumber
     }
 
     static getDesignatedAttackerName() {
@@ -259,31 +229,6 @@ class GameManager {
 
         sender.setWhispers(sender.getWhisperCount() - 1)
         recipient.notif(`A whisper from ${senderName}: ${contents}`)
-    }
-
-    static registerVote(voterName, targetName) {
-        const voter = this.getPlayer(voterName)
-        const target = this.getPlayer(targetName)
-
-        const currentVote = this.votes.get(voterName) || null
-        if (currentVote) {
-            this.revokeVote(voterName)
-        }
-        this.votes.set(voterName, targetName)
-        this.voteCounts.set(targetName, this.voteCounts.get(targetName) + 1)
-        if (this.voteCounts.get(targetName) > this.votesNeededToAxe) {this.axePlayer(targetName)}
-        this.getAlivePlayerUsernames().forEach((username) => {
-            IOManager.emitToPlayer(username, 'VOTE_UPDATE', {voteCountMap: this.voteCounts})
-        })
-    }
-
-    static revokeVote(voterName) {
-        const voter = this.getPlayer(voterName)
-
-        const currentTargetName = this.votes.get(voterName)
-        this.voteCounts.set(currentTargetName, this.voteCounts.get(currentTargetName) - 1)
-        this.votes.set(voterName, null)
-        //send a message in DP saying player revoked vote
     }
 
     static axePlayer(targetName) {
@@ -340,12 +285,6 @@ class GameManager {
         DA.notif(`You have been selected as the Mafia's Designated Attacker.`) // temp
     }
 
-    static createSharedChat(name, chatId, readerNames = [], writerNames = []) {
-        const newChat = new SharedChat(name, chatId, readerNames, writerNames)
-        this.sharedChats.set(chatId, newChat)
-        return newChat
-    }
-
     static isAlive(username) {
         const player = this.getPlayer(username)
         if (!player) return false
@@ -374,7 +313,7 @@ class GameManager {
     * 
     * @param {string} socketId - The socket ID of the player.
     * @param {string} username - The username of the player.
-    * @returns {Player|null} - Returns the newly created player object or null if the username or socket are occupied.
+    * @returns {Player|null} - Returns the newly created Player object or null if the username or socket are occupied.
     */
     static instantiatePlayer(socketId, username) {
         if (this._playerNameMap.has(username)) return null
@@ -389,6 +328,87 @@ class GameManager {
         IOManager.globalEmit('PLAYER_JOIN', {playerData: publicData})
 
         return newPlayer
+    }
+
+    /**
+    * Gets a Player by username.
+    * 
+    * @param {string} username - The username of the player.
+    * @returns {Player|null} - Returns the Player if it exists and null otherwise.
+    */
+    static getPlayer(username) {
+        return this._playerNameMap.get(username) || null
+    }
+
+    /**
+    * Gets a Player by socket ID.
+    * 
+    * @param {string} socketId - The socketId of the player.
+    * @returns {Player|null} - Returns the Player if it exists and null otherwise.
+    */
+    static getPlayerFromSocketId(socketId) {
+        return this._playerSocketMap.get(socketId) || null
+    }
+
+    /**
+    * Creates a new Shared Chat object given an ID and display name.
+    * 
+    * @param {string} chatId - The unique ID of the Shared Chat.
+    * @param {string} displayName - The display name of the Shared Chat.
+    * @param {string} [readers] - A list of usernames to grant read access to.
+    * @param {string} [writers] - A list of usernames to grant write access to.
+    * @returns {SharedChat|null} - Returns the newly created Shared Chat object or null if the id is occupied.
+    */
+    static createSharedChat(chatId, displayName, readers = [], writers = []) {
+        if (this._sharedChats.has(chatId)) return null
+
+        const newChat = new SharedChat(chatId, displayName, readers, writers)
+        this._sharedChats.set(chatId, newChat)
+
+        return newChat
+    }
+
+    /**
+    * Registers a generic Day Phase vote. Checks if conditions are met to Axe a target.
+    * 
+    * @param {string} voterName - The name of the player casting the vote.
+    * @param {string|null} targetName - The name of the target. If null, represents a revoked vote.
+    */
+    static registerVote(voterName, targetName) {
+        if (!this.isAlive(voterName)) {
+            console.error("Non-alive or nonexistent player attempted to cast vote.")
+            return
+        }
+        
+        const voterData = this._voteMap.get(voterName)
+        const oldTarget = voterData.votedFor
+        let newTargetData = null
+
+        if (oldTarget) {
+            const oldTargetData = this._voteMap.get(oldTarget)
+            oldTargetData.votesReceived--
+            this._voteMap.set(oldTarget, oldTargetData)
+        }
+
+        voterData.votedFor = null
+
+        if (targetName) {
+            if (!this.isAlive(targetName)) {
+                console.error("Player attempted to vote for non-alive target")
+                return
+            }
+            newTargetData = this._voteMap.get(targetName)
+            newTargetData.votesReceived++
+            voterData.votedFor = targetName
+
+            this._voteMap.set(targetName, newTargetData)
+        }
+
+        this._voteMap.set(voterName, voterData)
+        IOManager.globalEmit('VOTE_CAST', {newVoteTarget: targetName, previousVoteTarget: oldTarget})
+        if (newTargetData && (newTargetData.votesReceived > this._votesNeededToAxe)) {
+            this.axePlayer(targetName)
+        }
     }
 
     /**

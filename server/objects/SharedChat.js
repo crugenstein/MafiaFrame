@@ -1,7 +1,7 @@
 const { IOManager } = require('../io/IOManager')
 
-class SharedChat {
-    constructor(name, chatId, readers, writers) {
+class SharedChat { // TODO OVERHAUL
+    constructor(chatId, name, readers, writers) {
         this.name = name
         this.chatId = chatId
         this.readers = new Set()
