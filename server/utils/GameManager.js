@@ -105,6 +105,7 @@ class GameManager {
                 player.setWhispers(3)
                 player.resetDefense()
                 player.clearVisitors()
+                player.setAbilitySlots(1)
 
                 newDP.addWriter(playerName)
 
@@ -112,8 +113,9 @@ class GameManager {
                 this.voteCounts.set(playerName, 0)
                 this.DAvotes.set(playerName, null)
                 this.DAvoteCounts.set(playerName, 0)
-                this.designatedAttackerName = null
             })
+            this.designatedAttackerName = null
+            this.diedLastNightNames.clear()
         } else if (prevPhaseType === 'DAY') { // when the day phase ends
             const oldDP = this.getSharedChat(`DP-${this.phaseNumber}`)
             this.getAlivePlayerUsernames().forEach((playerName) => {
@@ -121,9 +123,21 @@ class GameManager {
             })
             oldDP.addMessage({senderName: '[SERVER]', contents: `The Day Phase has ended. Night Phase ${this.phaseNumber} has begun!`})
             AbilityManager.processPhaseEnd()
+            this.electDA()
+            if (!this.isAlive(this.designatedAttackerName)) {
+                // TEMP TEMP TEMP TEMP!! SHOULD BE IN ELECTING DA
+            }
+            this.getAlivePlayerUsernames().forEach((playerName) => {
+                const player = this.getPlayer(playerName)
+                player.resetDefense()
+                player.clearVisitors()
+                player.setAbilitySlots(1)
+            })
+            this.phaseType = 'NIGHT'
         }
         // no more rollover, we are done now
         this.gameStatus = 'IN_PROGRESS'
+        this.phaseTimeLeft = 150
     }
 
     /**
@@ -192,13 +206,21 @@ class GameManager {
         } else {
             victim.notif(`You were attacked!`)
             this.killPlayer(victimName)
-            victim.setStatus('DEAD')
             return true
         }
     }
 
     static killPlayer(victimName) {
-
+        const victim = this.getPlayer(victimName)
+        if (this.getPhaseType === 'NIGHT') {
+            this.diedLastNightNames.add(victimName)
+        }
+        victim.getWriteableChatData().forEach(({name, chatId}) => {
+            GameManager.getSharedChat(chatId).revokeWrite(victimName)
+        })
+        victim.setStatus('DEAD')
+        victim.getWriteableChatData()
+        victim.notif('You have died.')
     }
 
     static registerWhisper(senderName, recipientName, contents) {
@@ -232,7 +254,10 @@ class GameManager {
     }
 
     static axePlayer(targetName) {
-        //TODO
+        const DP = this.getSharedChat(`DP-${this.phaseNumber}`)
+        DP.addMessage({senderName: '[SERVER]', contents: `${targetName} was Axed!`})
+        this.killPlayer(targetName)
+        this.nextPhase()
     }
 
     static registerDAVote(voterName, targetName) {
@@ -257,7 +282,7 @@ class GameManager {
         //send a message in DP saying player revoked vote
     }
 
-    static electDA() {
+    static electDA() { // THIS NEEDS BETTER LOGIC IN CASE THE PERSON IS DEAD
         let maxVotes = -Infinity
         let maxVoters = new Set()
 
