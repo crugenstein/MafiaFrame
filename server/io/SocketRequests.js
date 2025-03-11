@@ -19,9 +19,10 @@ const socketRequests = (socket) => {
 
     socket.on('REQUEST_NOTIF_INFO', () => {
         const player = GameManager.getPlayerFromSocketId(socket.id)
+        const notifications = player.getNotifications()
 
         IOManager.emitToPlayer(player.getUsername(), 'RECEIVE_NOTIF_INFO', {
-            notifications: player.getNotifications()
+            notifications
         })
     })
 
@@ -39,14 +40,14 @@ const socketRequests = (socket) => {
 
     socket.on('REQUEST_SHARED_CHATS', () => {
         const player = GameManager.getPlayerFromSocketId(socket.id)
+        const chats = player.getReadableChatData()
         
         IOManager.emitToPlayer(player.getUsername(), 'RECEIVE_SHARED_CHATS', {
-            chatData: player.getReadableChatData()
+            chats
         })
     })
 
     socket.on('REQUEST_ROLE_INFO', () => {
-
 
     })
 

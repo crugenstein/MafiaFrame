@@ -1,3 +1,4 @@
+const { IOManager } = require('../io/IOManager')
 const { Player } = require('../objects/Player')
 const { SharedChat } = require('../objects/SharedChat')
 const { AbilityManager } = require('./AbilityManager')
@@ -71,7 +72,9 @@ class GameManager {
             })
             const mafiaList = this.getMafiaPlayerUsernames()
             this.createSharedChat('Mafia Chat', 'mafia', mafiaList, mafiaList)
-            // EMIT Stuff that should be available on game start
+            this.players.forEach((player) => {
+                this.distributeGameData(player.getUsername())
+            })
         }
         // what we do when the night ends and the next day starts (ALTERNATIVELY when the game starts)
         if (prevPhaseType === 'NIGHT') {
@@ -124,9 +127,6 @@ class GameManager {
             oldDP.addMessage({senderName: '[SERVER]', contents: `The Day Phase has ended. Night Phase ${this.phaseNumber} has begun!`})
             AbilityManager.processPhaseEnd()
             this.electDA()
-            if (!this.isAlive(this.designatedAttackerName)) {
-                // TEMP TEMP TEMP TEMP!! SHOULD BE IN ELECTING DA
-            }
             this.getAlivePlayerUsernames().forEach((playerName) => {
                 const player = this.getPlayer(playerName)
                 player.resetDefense()
@@ -135,9 +135,19 @@ class GameManager {
             })
             this.phaseType = 'NIGHT'
         }
-        // no more rollover, we are done now
-        this.gameStatus = 'IN_PROGRESS'
-        this.phaseTimeLeft = 150
+        // WIN CONDITION CHECK (major todo)
+        if (this.getMafiaPlayerUsernames().length < 1) {
+            this.globalEmit('TOWN_VICTORY', {})
+            this.gameStatus = 'GAME_FINISHED'
+            this.phaseType = 'LOBBY'
+        } else if (this.getAlivePlayerUsernames().length < this.getMafiaPlayerUsernames().length + 1) {
+            this.globalEmit('MAFIA_VICTORY', {})
+            this.gameStatus = 'GAME_FINISHED'
+            this.phaseType = 'LOBBY'
+        } else {
+            this.gameStatus = 'IN_PROGRESS' // no more rollover, we are done now
+            this.phaseTimeLeft = 150
+        }
     }
 
     /**
@@ -162,7 +172,7 @@ class GameManager {
     }
 
     static getMafiaPlayerUsernames() {
-        return [...this.players.values()].filter(player => player.getAlignment() === 'MAFIA').map(player => player.getUsername())
+        return [...this.players.values()].filter(player => (player.getAlignment() === 'MAFIA' && player.getStatus() === 'ALIVE')).map(player => player.getUsername())
     }
 
     static removePlayer(username) {
@@ -221,6 +231,9 @@ class GameManager {
         victim.setStatus('DEAD')
         victim.getWriteableChatData()
         victim.notif('You have died.')
+        this.getAlivePlayerUsernames().forEach((username) => {
+            IOManager.emitToPlayer(username, 'PLAYER_DIED', {victimName})
+        })
     }
 
     static registerWhisper(senderName, recipientName, contents) {
@@ -241,7 +254,10 @@ class GameManager {
         }
         this.votes.set(voterName, targetName)
         this.voteCounts.set(targetName, this.voteCounts.get(targetName) + 1)
-        if (this.voteCounts.get(targetName) > this.votesNeededToAxe) this.axePlayer(targetName)
+        if (this.voteCounts.get(targetName) > this.votesNeededToAxe) {this.axePlayer(targetName)}
+        this.getAlivePlayerUsernames().forEach((username) => {
+            IOManager.emitToPlayer(username, 'VOTE_UPDATE', {voteCountMap: this.voteCounts})
+        })
     }
 
     static revokeVote(voterName) {
@@ -270,6 +286,9 @@ class GameManager {
         }
         this.DAvotes.set(voterName, targetName)
         this.DAvoteCounts.set(targetName, this.DAvoteCounts.get(targetName) + 1)
+        this.getMafiaPlayerUsernames().forEach((username) => {
+            IOManager.emitToPlayer(username, 'DA_VOTE_UPDATE', {voteCountMap: this.DAvoteCounts})
+        })
         // send a message in mafia chat about this prolly
     }
 
@@ -279,10 +298,9 @@ class GameManager {
         const currentTargetName = this.DAvotes.get(voterName)
         this.DAvoteCounts.set(currentTargetName, this.DAvoteCounts.get(currentTargetName) - 1)
         this.DAvotes.set(voterName, null)
-        //send a message in DP saying player revoked vote
     }
 
-    static electDA() { // THIS NEEDS BETTER LOGIC IN CASE THE PERSON IS DEAD
+    static electDA() {
         let maxVotes = -Infinity
         let maxVoters = new Set()
 
@@ -298,6 +316,9 @@ class GameManager {
 
         const maxVoterArray = Array.from(maxVoters);
         this.designatedAttackerName = maxVoterArray[Math.floor(Math.random() * maxVoterArray.length)]
+        if (!this.isAlive(this.designatedAttackerName)) {
+            this.designatedAttackerName = this.getMafiaPlayerUsernames()[Math.floor(Math.random() * this.getMafiaPlayerUsernames().length)]
+        }
         const DA = this.getPlayer(this.designatedAttackerName)
         DA.notif(`You have been selected as the Mafia's Designated Attacker.`) // temp
     }
@@ -313,6 +334,21 @@ class GameManager {
         if (!player) return false
         else if (player.getStatus() !== 'ALIVE') return false
         return true
+    }
+
+    static distributeGameData(username) {
+        const player = GameManager.getPlayer(username)
+        const data = {
+            username,
+            alivePlayers: this.getAlivePlayerUsernames(),
+            roleName: player.getRoleName(),
+            mafia: player.getAlignment() === 'MAFIA' ? this.getMafiaPlayerUsernames() : [],
+            DA: player.getAlignment() === 'MAFIA' ? this.getDesignatedAttackerName() : null
+        }
+
+        IOManager.emitToPlayer(username, 'REQUEST_GAME_DATA', {
+            gameData: data
+        })
     }
 
 }
