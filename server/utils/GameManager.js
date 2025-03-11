@@ -4,7 +4,33 @@ const { SharedChat } = require('../objects/SharedChat')
 const { AbilityManager } = require('./AbilityManager')
 const { RoleDistributor } = require('./RoleDistributor')
 
+const GameStatus = Object.freeze({
+    LOBBY_WAITING: 0,
+    LOBBY_COUNTDOWN: 1,
+    ROLLOVER: 2,
+    IN_PROGRESS: 3,
+    GAME_FINISHED: 4
+})
+
+const PhaseType = Object.freeze({
+    LOBBY: 0,
+    DAY: 1,
+    NIGHT: 2
+})
+
 class GameManager {
+    static _phaseType = PhaseType.LOBBY
+    static _gameStatus = GameStatus.LOBBY_WAITING
+
+    static _phaseNumber = 0
+    static _phaseTimeLeft = 15 // in seconds
+    static _phaseLength = 150 // in seconds
+
+    static _playerNameMap = new Map()
+    static _playerSocketMap = new Map()
+
+    static _sharedChats = new Map()
+
     static players = new Map() // KEY is username, value is PLAYER object
     static sharedChats = new Map() // KEY is chatId, value is SHAREDCHAT object
 
@@ -16,8 +42,8 @@ class GameManager {
     static DAvoteCounts = new Map()
     static designatedAttackerName = null
 
-    static gameStatus = 'LOBBY_WAITING' // 'LOBBY_WAITING', 'LOBBY_COUNTDOWN', 'ROLLOVER', 'IN_PROGRESS', or 'GAME_FINISHED'
-    static phaseType = 'LOBBY' // 'LOBBY', 'DAY', or 'NIGHT'
+    static gameStatus = GameStatus.LOBBY_WAITING
+    static phaseType = PhaseType.LOBBY
     static phaseNumber = 0
     static phaseTimeLeft = 15 // in seconds
     static phaseLength = 150 // in seconds
@@ -26,14 +52,12 @@ class GameManager {
 
     static diedLastNightNames = new Set()
     
-    static startGameLoop() { // HEARTBEAT RUN THIS WHEN THE PROGRAM STARTS
+    static startGameLoop() { // Run when game starts
         if (this.gameLoopInterval) return
-        this.gameLoopInterval = setInterval(() => { // THIS HAPPENS EVERY SECOND
-            if (gameStatus === 'LOBBY_COUNTDOWN' || gameStatus === 'IN_PROGRESS') {
-                phaseTimeLeft--
-            }
-            if (phaseTimeLeft <= 0) {
-                if (gameStatus === 'LOBBY_COUNTDOWN' || 'IN_PROGRESS') {
+        this.gameLoopInterval = setInterval(() => {
+            if (this.gameStatus === GameStatus.LOBBY_COUNTDOWN || this.gameStatus === GameStatus.IN_PROGRESS) {
+                this.phaseTimeLeft--
+                if (this.phaseTimeLeft <= 0) {
                     this.nextPhase()
                 }
             }
@@ -46,18 +70,11 @@ class GameManager {
         }, 1000)
     }
 
-    static stopGameLoop() { // RUN THIS WHEN GAME CONCLUDES
+    static stopGameLoop() { // Run when game ends
         if (this.gameLoopInterval) {
             clearInterval(this.gameLoopInterval)
             this.gameLoopInterval = null
         }
-    }
-
-    static instantiatePlayer(socketId, username) {
-        if (this.players.has(username)) return "Username already taken!"
-        const newPlayer = new Player(socketId, username)
-        this.players.set(username, newPlayer)
-        return newPlayer
     }
 
     static nextPhase() {
@@ -349,6 +366,86 @@ class GameManager {
         IOManager.emitToPlayer(username, 'REQUEST_GAME_DATA', {
             gameData: data
         })
+    }
+
+    /**
+    * Instantiates a new Player object and registers it within the GameManager. Broadcasts the creation event with
+    * payload containing the player's public data.
+    * 
+    * @param {string} socketId - The socket ID of the player.
+    * @param {string} username - The username of the player.
+    * @returns {Player|null} - Returns the newly created player object or null if the username or socket are occupied.
+    */
+    static instantiatePlayer(socketId, username) {
+        if (this._playerNameMap.has(username)) return null
+        if (this._playerSocketMap.has(socketId)) return null
+
+        const newPlayer = new Player(socketId, username)
+
+        this._playerNameMap.set(username, newPlayer)
+        this._playerSocketMap.set(socketId, newPlayer)
+
+        const publicData = newPlayer.publicData
+        IOManager.globalEmit('PLAYER_JOIN', {playerData: publicData})
+
+        return newPlayer
+    }
+
+    /**
+    * Sets the Phase Type and broadcasts the change.
+    * 
+    * @param {number} type - The new phase type. Use the PhaseType enum in GameManager.
+    */
+    static set phaseType(type) {
+        this._phaseType = type
+        IOManager.globalEmit('PHASE_TYPE_UPDATE', {phaseType: type})
+    }
+
+    static get phaseType() {return this._phaseType}
+
+    /**
+    * Sets the Game Status and broadcasts the change.
+    * 
+    * @param {number} status - The new status. Use the GameStatus enum in GameManager.
+    */
+    static set gameStatus(status) {
+        this._gameStatus = status
+        IOManager.globalEmit('GAME_STATUS_UPDATE', {gameStatus: status})
+    }
+
+    static get gameStatus() {return this._gameStatus}
+
+    /**
+    * Sets the Phase Number and broadcasts the change.
+    * 
+    * @param {number} type - The Phase Type. Use the PhaseType enum in GameManager.
+    */
+    static set phaseNumber(number) {
+        this._phaseNumber = number
+        IOManager.globalEmit('PHASE_NUMBER_UPDATE', {phaseNumber: number})
+    }
+
+    static get phaseNumber() {return this._phaseNumber}
+
+    /**
+    * Sets the Phase Time Left and broadcasts the change.
+    * 
+    * @param {number} time - The time left in the current phase in seconds.
+    */
+    static set phaseTimeLeft(time) {
+        this._phaseTimeLeft = time
+        IOManager.globalEmit('PHASE_TIME_LEFT_UPDATE', {phaseTimeLeft: time})
+    }
+
+    static get phaseLength() {return this._phaseLength}
+
+    /**
+    * Sets the Phase Length.
+    * 
+    * @param {number} length - The new phase length in seconds.
+    */
+    static set phaseLength(length) {
+        this._phaseLength = length
     }
 
 }

@@ -145,6 +145,10 @@ class Player {
     getAbilitySlots() {
         return this.abilitySlots
     }
+
+    get publicData() {
+        //todo
+    }
 }
 
 module.exports = { Player }
