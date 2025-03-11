@@ -20,6 +20,9 @@ class Player {
         this.visitors = new Set()
 
         this.notifications = new Map()
+        
+        this.chatsCanWrite = new Set() // object {name, chatId}
+        this.chatsCanRead = new Set() // object {name, chatId}
     }
 
     assignRole(roleKey) {
@@ -99,6 +102,39 @@ class Player {
         return this.roleData.alignment
     }
 
+    getNotifications() {
+        return this.notifications
+    }
+
+    getReadableChatData() {
+        return Array.from(this.chatsCanRead)
+    }
+
+    getWriteableChatData() {
+        return Array.from(this.chatsCanWrite)
+    }
+
+    addReadableChat(name, chatId) {
+        this.chatsCanRead.add({name, chatId})
+    }
+
+    addWriteableChat(name, chatId) {
+        this.chatsCanWrite.add({name, chatId})
+    }
+
+    removeReadableChat(chatId) {
+        const toDelete = [...this.chatsCanRead].find(chat => chat.chatId === chatId)
+        if (toDelete) this.chatsCanRead.delete(toDelete)
+    }
+
+    removeWriteableChat(chatId) {
+        const toDelete = [...this.chatsCanWrite].find(chat => chat.chatId === chatId)
+        if (toDelete) this.chatsCanWrite.delete(toDelete)
+    }
+
+    getAllAbilityData() {
+        return [...this.activeAbilities.values()].map(ability => ability.getVisibleProperties())
+    }
 }
 
 module.exports = { Player }

@@ -14,6 +14,7 @@ const abilityDictionary = {
         },
         selections: ["SELECT_SINGLE_PLAYER_TARGET"],
         tags: new Set(["NIGHT"]),
+        hiddenTags: new Set(),
         priority: 6
     },
     "PLACEHOLDER_MAFIA_KILL": {
@@ -31,6 +32,7 @@ const abilityDictionary = {
         },
         selections: ["SELECT_SINGLE_PLAYER_TARGET"],
         tags: new Set(["DESIGNATED", "NIGHT"]),
+        hiddenTags: new Set(),
         priority: 9
     },
     "PLACEHOLDER_PROTECT": {
@@ -45,6 +47,7 @@ const abilityDictionary = {
         },
         selections: ["SELECT_SINGLE_PLAYER_TARGET"],
         tags: new Set(["NIGHT"]),
+        hiddenTags: new Set(),
         priority: 3
     }
 }

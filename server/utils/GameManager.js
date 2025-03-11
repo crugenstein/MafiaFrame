@@ -36,6 +36,12 @@ class GameManager {
                     this.nextPhase()
                 }
             }
+            IOManager.globalEmit('GAME_STATE_PULSE', {
+                phaseType: this.phaseType,
+                phaseTimeLeft: this.phaseTimeLeft,
+                gameStatus: this.gameStatus,
+                phaseNumber: this.phaseNumber
+            }) //TODO. Add more?
         }, 1000)
     }
 
@@ -64,7 +70,8 @@ class GameManager {
             })
             this.phaseNumber = 0
             const mafiaList = this.getMafiaPlayerUsernames()
-            this.createSharedChat('mafia', mafiaList, mafiaList)
+            this.createSharedChat('Mafia Chat', 'mafia', mafiaList, mafiaList)
+            // EMIT THE MAFIA PLAYERS THEIR TEAMMATES AND STUFF LOL HAHAH AHHAHAHA
         }
         // what we do when the night ends and the next day starts (ALTERNATIVELY when the game starts)
         if (prevPhaseType === 'NIGHT' || prevPhaseType === 'LOBBY') {
@@ -82,7 +89,7 @@ class GameManager {
                 this.votesNeededToAxe = Math.ceil(0.5 * alivePlayerList.length)
             }
             // make dp chat
-            const newDP = this.createSharedChat(key, this.getAllUsernames())
+            const newDP = this.createSharedChat(`Day Phase ${this.phaseNumber}`, key, this.getAllUsernames())
             // announce last night deaths
             this.diedLastNightNames.forEach((name) => {
                 const message = {senderName: '[SERVER]', contents: `${name} died last night.`}
@@ -120,6 +127,11 @@ class GameManager {
         }
     }
 
+    /**
+     * Creates a new Player.
+     * @param {string} username - The player's username.
+     * @returns {Player} The player object associated with the username. Returns null if player does not exist.
+     */
     static getPlayer(username) {
         return this.players.get(username) || null
     }
@@ -266,8 +278,8 @@ class GameManager {
         DA.notif(`You have been selected as the Mafia's Designated Attacker.`) // temp
     }
 
-    static createSharedChat(chatId, readerNames = [], writerNames = []) {
-        const newChat = new SharedChat(chatId, readerNames, writerNames)
+    static createSharedChat(name, chatId, readerNames = [], writerNames = []) {
+        const newChat = new SharedChat(name, chatId, readerNames, writerNames)
         this.sharedChats.set(chatId, newChat)
         return newChat
     }

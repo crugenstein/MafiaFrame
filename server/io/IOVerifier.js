@@ -73,6 +73,12 @@ class IOVerifier {
         return true
     }
 
+    static verifyChatRead(socketId, chatId) {
+        const player = GameManager.getPlayerFromSocketId(socketId)
+        const chat = GameManager.getSharedChat(chatId)
+        if (!chat.canRead(chatId)) return false
+        return true
+    }
 }
 
 module.exports = { IOVerifier }

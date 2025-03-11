@@ -1,7 +1,8 @@
 const { IOManager } = require('../io/IOManager')
 
 class SharedChat {
-    constructor(chatId, readers, writers) {
+    constructor(name, chatId, readers, writers) {
+        this.name = name
         this.chatId = chatId
         this.readers = new Set()
         readers.forEach((readerName) => {this.addReader(readerName)})
@@ -11,12 +12,16 @@ class SharedChat {
     }
 
     addReader(playerName) {
+        const player = GameManager.getPlayer(playerName)
+        player.addReadableChat(this.name, this.chatId)
         this.readers.add(playerName)
         IOManager.addPlayerToRoom(playerName, this.chatId)
         IOManager.emitToPlayer(playerName, 'NEW_CHAT_READ_ACCESS', {chatId: this.chatId})
     }
 
     addWriter(playerName) {
+        const player = GameManager.getPlayer(playerName)
+        player.addWriteableChat(this.name, this.chatId)
         this.writers.add(playerName)
         IOManager.emitToPlayer(playerName, 'NEW_CHAT_WRITE_ACCESS', {chatId: this.chatId})
     }
@@ -35,12 +40,16 @@ class SharedChat {
     }
 
     revokeRead(playerName) {
+        const player = GameManager.getPlayer(playerName)
+        player.removeReadableChat(this.chatId)
         this.readers.delete(playerName)
         IOManager.removePlayerFromRoom(playerName, this.chatId)
         IOManager.emitToPlayer(playerName, 'LOST_CHAT_READ_ACCESS', {chatId: this.chatId})
     }
 
     revokeWrite(playerName) {
+        const player = GameManager.getPlayer(playerName)
+        player.removeWriteableChat(this.chatId)
         this.writers.delete(playerName)
         IOManager.emitToPlayer(playerName, 'LOST_CHAT_WRITE_ACCESS', {chatId: this.chatId})
     }
@@ -51,7 +60,11 @@ class SharedChat {
     }
 
     getMessages() {
-        return messages
+        return this.messages
+    }
+
+    getName() {
+        return this.name
     }
 
     addMessage(senderName, contents) {
