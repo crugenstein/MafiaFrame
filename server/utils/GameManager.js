@@ -1,6 +1,6 @@
 const { IOManager } = require('../io/IOManager')
-const { Player } = require('../objects/Player')
-const { SharedChat } = require('../objects/SharedChat')
+const { Player, PlayerStatus, PlayerAlignment, NotificationType } = require('../objects/Player')
+const { SharedChat, MessageType } = require('../objects/SharedChat')
 const { AbilityManager } = require('./AbilityManager')
 const { RoleDistributor } = require('./RoleDistributor')
 
@@ -32,6 +32,8 @@ class GameManager {
     static _playerSocketMap = new Map() // key: unique player socketid string, value is player name
 
     static _sharedChats = new Map() // key: unique sharedchat id, value is sharedchat object
+    static _dayPhaseChats = new Map() // key: day number, value is sharedchat Object
+    static _mafiaChat = null
 
     /**
     * Keys are player names (strings) and values are vote data objects.
@@ -41,7 +43,7 @@ class GameManager {
     static _votesNeededToAxe = Infinity // how many votes to axe someone?
     static _designatedAttacker = null // the name of the designated attacker
 
-    static diedLastNightNames = new Set()
+    static _diedLastNight = new Set()
     
     static startGameLoop() { // Run when game starts
         if (this.gameLoopInterval) return
@@ -158,32 +160,8 @@ class GameManager {
         }
     }
 
-    static getAlivePlayers() {
-        return [...this.players.values()].filter(player => player.getStatus() === 'ALIVE')
-    }
-
     static getAllUsernames() {
         return [...this.players.values()].map(player => player.getUsername())
-    }
-
-    static getAlivePlayerUsernames() {
-        return [...this.players.values()].filter(player => player.getStatus() === 'ALIVE').map(player => player.getUsername())
-    }
-
-    static getMafiaPlayerUsernames() {
-        return [...this.players.values()].filter(player => (player.getAlignment() === 'MAFIA' && player.getStatus() === 'ALIVE')).map(player => player.getUsername())
-    }
-
-    static removePlayer(username) {
-        this.players.delete(username)
-    }
-
-    static getSharedChat(chatId) {
-        return this.sharedChats.get(chatId) || null
-    }
-
-    static getDesignatedAttackerName() {
-        return this.designatedAttackerName
     }
 
     static registerVisit(visitorName, targetName) {
@@ -193,79 +171,12 @@ class GameManager {
         target.addVisitor(visitor)
     }
 
-    static registerAttack(attackerName, victimName, attackStrength, specialProperties = []) {
-        const attacker = this.getPlayer(attackerName)
-        const victim = this.getPlayer(victimName)
-
-        if (victim.getDefense() >= attackStrength) {
-            victim.notif(`You were attacked, but your defense level overwhelmed the assailant!`)
-            return false
-        } else {
-            victim.notif(`You were attacked!`)
-            this.killPlayer(victimName)
-            return true
-        }
-    }
-
-    static killPlayer(victimName) {
-        const victim = this.getPlayer(victimName)
-        if (this.getPhaseType === 'NIGHT') {
-            this.diedLastNightNames.add(victimName)
-        }
-        victim.getWriteableChatData().forEach(({name, chatId}) => {
-            GameManager.getSharedChat(chatId).revokeWrite(victimName)
-        })
-        victim.setStatus('DEAD')
-        victim.getWriteableChatData()
-        victim.notif('You have died.')
-        this.getAlivePlayerUsernames().forEach((username) => {
-            IOManager.emitToPlayer(username, 'PLAYER_DIED', {victimName})
-        })
-    }
-
     static registerWhisper(senderName, recipientName, contents) {
         const sender = this.getPlayer(senderName)
         const recipient = this.getPlayer(recipientName)
 
         sender.setWhispers(sender.getWhisperCount() - 1)
         recipient.notif(`A whisper from ${senderName}: ${contents}`)
-    }
-
-    static axePlayer(targetName) {
-        const DP = this.getSharedChat(`DP-${this.phaseNumber}`)
-        DP.addMessage({senderName: '[SERVER]', contents: `${targetName} was Axed!`})
-        this.killPlayer(targetName)
-        this.nextPhase()
-    }
-
-    static electDA() {
-        let maxVotes = -Infinity
-        let maxVoters = new Set()
-
-        this.DAvoteCounts.forEach((voteCount, username) => {
-            if (voteCount > maxVotes) {
-                maxVotes = voteCount;
-                maxVoters.clear()
-                maxVoters.add(username)
-            } else if (voteCount === maxVotes) {
-                maxVoters.add(username)
-            }
-        })
-
-        const maxVoterArray = Array.from(maxVoters);
-        this.designatedAttackerName = maxVoterArray[Math.floor(Math.random() * maxVoterArray.length)]
-        if (!this.isAlive(this.designatedAttackerName)) {
-            this.designatedAttackerName = this.getMafiaPlayerUsernames()[Math.floor(Math.random() * this.getMafiaPlayerUsernames().length)]
-        }
-        const DA = this.getPlayer(this.designatedAttackerName)
-        DA.notif(`You have been selected as the Mafia's Designated Attacker.`) // temp
-    }
-
-    static isAlive(username) {
-        const player = this.getPlayer(username)
-        if (!player) return false
-        else if (player.getStatus() !== 'ALIVE') return false
-        return true
     }
 
     static distributeGameData(username) {
@@ -327,19 +238,66 @@ class GameManager {
     }
 
     /**
-    * Creates a new Shared Chat object given an ID and display name.
+    * Gets a Shared Chat by chatId.
     * 
-    * @param {string} chatId - The unique ID of the Shared Chat.
+    * @param {string} chatId - The id of the SharedChat.
+    * @returns {SharedChat|null} - Returns the Player if it exists and null otherwise.
+    */
+    static getSharedChat(chatId) {
+        return this._sharedChats.get(chatId) || null
+    }
+    
+    /**
+    * Gets Day Phase Shared Chat.
+    * 
+    * @param {number} [dayNumber] - Which Day Phase chat to retrieve. Defaults to current Day.
+    * @returns {SharedChat|null} - Returns the Player if it exists and null otherwise.
+    */
+    static getDayPhaseChat(dayNumber = this.phaseNumber) {
+        return this._dayPhaseChats.get(dayNumber) || null
+    }
+
+    /**
+    * Checks whether the username corresponds to an alive player.
+    * 
+    * @param {string} username - The username of the player.
+    * @returns {boolean} - Whether or not the username corresponds to an alive player.
+    */
+    static isAlive(username) {
+        const player = this.getPlayer(username)
+
+        if (!player) return false
+        else if (player.status !== PlayerStatus.ALIVE) return false
+
+        return true
+    }
+
+    /**
+    * Checks whether the username corresponds to an alive Mafia player.
+    * 
+    * @param {string} username - The username of the player.
+    * @returns {boolean} - Whether or not the username corresponds to an alive Mafia player.
+    */
+    static isAliveMafia(username) {
+        const player = this.getPlayer(username)
+
+        if (!player) return false
+        else if (player.status !== PlayerStatus.ALIVE || player.alignment !== PlayerAlignment.MAFIA) return false
+
+        return true
+    }
+
+    /**
+    * Creates a new Shared Chat object given a display name.
+    * 
     * @param {string} displayName - The display name of the Shared Chat.
     * @param {string} [readers] - A list of usernames to grant read access to.
     * @param {string} [writers] - A list of usernames to grant write access to.
-    * @returns {SharedChat|null} - Returns the newly created Shared Chat object or null if the id is occupied.
+    * @returns {SharedChat|null} - Returns the newly created Shared Chat object.
     */
-    static createSharedChat(chatId, displayName, readers = [], writers = []) {
-        if (this._sharedChats.has(chatId)) return null
-
-        const newChat = new SharedChat(chatId, displayName, readers, writers)
-        this._sharedChats.set(chatId, newChat)
+    static createSharedChat(displayName, readers = [], writers = []) {
+        const newChat = new SharedChat(displayName, readers, writers)
+        this._sharedChats.add(newChat.id, newChat)
 
         return newChat
     }
@@ -382,9 +340,73 @@ class GameManager {
 
         this._voteMap.set(voterName, voterData)
         IOManager.globalEmit('VOTE_CAST', {newVoteTarget: targetName, previousVoteTarget: oldTarget})
+
+        const DP = this.getDayPhaseChat()
+        DP.addMessage(MessageType.VOTE, '[SERVER]', `${voterName} has voted for ${targetName}. They now have ${newTargetData.votesReceived} vote(s).`)
+
         if (newTargetData && (newTargetData.votesReceived > this._votesNeededToAxe)) {
             this.axePlayer(targetName)
         }
+    }
+    
+    /**
+    * Axes a player and concludes the current Day Phase.
+    * 
+    * @param {string} victimName - The name of the player to be Axed.
+    */
+    static axePlayer(targetName) {
+        if (!this.isAlive(targetName)) {
+            console.error("Server attempted to axe non-alive player.")
+            return
+        }
+        const DP = this.getDayPhaseChat()
+        DP.addMessage(MessageType.SERVER, '[SERVER]', `${targetName} was Axed!`)
+
+        this.killPlayer(targetName)
+
+        this.endDayPhase()
+    }
+
+    /**
+    * Attacks a player, killing them if fatal.
+    * 
+    * @param {string} attackerName - The name of the player dealing the attack.
+    * @param {string} victimName - The name of the attack target.
+    * @param {number} attackStrength - The name of the player dealing the attack.
+    * @param {Array<number>} [specialProperties] - Any special attack properties. (IMPLEMENT LATER)
+    * @returns {boolean} - Whether or not the attack was fatal.
+    */
+    static registerAttack(attackerName, victimName, attackStrength, specialProperties = []) {
+        const attacker = this.getPlayer(attackerName)
+        const victim = this.getPlayer(victimName)
+
+        if (victim.defense >= attackStrength) {
+            victim.notif(NotificationType.ABILITY_RESULT, `You were attacked, but your defense level overwhelmed the assailant!`)
+            return false
+        } else {
+            victim.notif(NotificationType.ABILITY_RESULT, `You were attacked!`)
+            this.killPlayer(victimName)
+            return true
+        }
+    }
+
+    /**
+    * Kills a player, broadcasting the event and updating the list of players who died during the current phase.
+    * 
+    * @param {string} victimName - The name of the player to be killed.
+    */
+    static killPlayer(victimName) {
+        if (!this.isAlive(victimName)) return // this might happen if the player is killed multiple times per phase transition
+
+        const victim = this.getPlayer(victimName)
+        victim.status = PlayerStatus.DEAD
+
+        if (this.phaseType === PhaseType.NIGHT) {
+            this._diedLastNight.add(victimName)
+        }
+
+        IOManager.globalEmit('PLAYER_DIED', {death: victimName})
+        victim.notif(NotificationType.ABILITY_RESULT, 'You have died.')
     }
 
     /**
@@ -393,7 +415,7 @@ class GameManager {
     * @param {string} voterName - The name of the player casting the vote.
     * @param {string|null} targetName - The name of the target. If null, represents a revoked vote.
     */
-    static registerVote(voterName, targetName) {
+    static registerDAvote(voterName, targetName) {
         if (!this.isAlive(voterName) || !this.isMafia(voterName)) {
             console.error("Non-alive or nonexistent or non-mafia player attempted to cast DA vote.")
             return
@@ -412,7 +434,7 @@ class GameManager {
         voterData.DAvotedFor = null
 
         if (targetName) {
-            if (!this.isAlive(targetName) || !this.isMafia(targetName)) {
+            if (!this.isAliveMafia(targetName)) {
                 console.error("Player attempted to DA-vote for non-alive or nonexistent or non-mafia target")
                 return
             }
@@ -425,7 +447,55 @@ class GameManager {
 
         this._voteMap.set(voterName, voterData)
         IOManager.emitToMafia('DA_VOTE_CAST', {newVoteTarget: targetName, previousVoteTarget: oldTarget})
+
+        this.mafiaChat.addMessage(MessageType.VOTE, '[SERVER]', `${voterName} has DA-voted for ${targetName}. They now have ${newTargetData.DAvotesReceived} vote(s).`)
     }
+    
+    /**
+    * Elects and updates the Designated Attacker property. Chooses randomly between tied players.
+    * Notifies the Designated Attacker when they are chosen and broadcasts this event to the Mafia.
+    */
+    static electDA() {
+        let maxVotes = -Infinity
+        let maxVoters = new Set()
+
+        this._voteMap.forEach((voteData, dataOwnerName) => {
+            if (this.isAliveMafia(dataOwnerName)) {
+                const votesReceived = voteData.DAvotesReceived
+                if (votesReceived > maxVotes) {
+                    maxVotes = votesReceived
+                    maxVoters.clear()
+                    maxVoters.add(dataOwnerName)
+                } else if (votesReceived === maxVotes) {
+                    maxVoters.add(dataOwnerName)
+                }
+            }
+        })
+
+        const maxVoterArray = Array.from(maxVoters)
+        this.designatedAttacker = maxVoterArray[Math.floor(Math.random() * maxVoterArray.length)]
+    }
+
+    /**
+    * Returns an array of alive player usernames.
+    * 
+    * @returns {Array<string>} - An array of alive player usernames.
+    */
+    static get alivePlayers() {return [...this._playerNameMap.values()].filter(player => player.status === PlayerStatus.ALIVE)}
+
+    /**
+    * Returns an array of alive Mafia player usernames.
+    * 
+    * @returns {Array<string>} - An array of alive Mafia player usernames.
+    */
+    static get aliveMafia() {return [...this._playerNameMap.values()].filter(player => (player.status === PlayerStatus.ALIVE && player.alignment === PlayerAlignment.MAFIA))}
+  
+    /**
+    * Returns the Mafia Shared Chat object.
+    * 
+    * @returns {SharedChat} - Mafia Chat object.
+    */
+    static get mafiaChat() {return this._mafiaChat}
 
     /**
     * Sets the Phase Type and broadcasts the change.
@@ -510,6 +580,38 @@ class GameManager {
     * @returns {number} - The phase length, in seconds.
     */
     static get phaseLength() {return this._phaseLength}
+
+    /**
+    * Returns the username of the Designated Attacker.
+    * 
+    * @returns {string|null} - The name of the Designated Attacker or null if there is no Designated Attacker.
+    */
+    static get designatedAttacker() {return this._designatedAttacker}
+
+    /**
+    * Sets the username of the Designated Attacker and notifies the Mafia of the change. Also sends a notifcation to the new DA.
+    * 
+    * @param {string} name - The name of the new Designated Attacker.
+    */
+    static set designatedAttacker(name) {
+        if (!this.isAliveMafia(name)) {
+            console.error('Designated Attacker cannot be set to a player who is not an alive Mafia member')
+            return
+        }
+
+        this._designatedAttacker = name
+        IOManager.emitToMafia('DA_UPDATE', {DA: name})
+
+        const DA = this.getPlayer(name)
+        DA.notif(NotificationType.SERVER, `You have been chosen as the Mafia's Designated Attacker.`)
+    }
+    
+    /**
+    * Returns an array of players who died during the previous Night Phase.
+    * 
+    * @returns {Array<string>} - An array of recently deceased player names.
+    */
+    static get diedLastNight() {return Array.from(this._diedLastNight)}
 
 }
 

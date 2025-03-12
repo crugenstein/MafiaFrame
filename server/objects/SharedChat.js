@@ -1,5 +1,11 @@
 const { IOManager } = require('../io/IOManager')
 
+const MessageType = Object.freeze({
+    SERVER: 0,
+    VOTE: 1,
+    PLAYER_MESSAGE: 2
+})
+
 class SharedChat { // TODO OVERHAUL
     constructor(chatId, name, readers, writers) {
         this.name = name
@@ -75,4 +81,4 @@ class SharedChat { // TODO OVERHAUL
 
 }
 
-module.exports = { SharedChat }
+module.exports = { SharedChat, MessageType }
