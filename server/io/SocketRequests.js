@@ -1,9 +1,56 @@
-// FETCH for player list (with their statuses and votes) [SHOULD ALSO RETURN GAME STATE STUFF I THINK]
+const { IOManager } = require('./IOManager')
+const { GameManager } = require('../utils/GameManager')
+const { IOVerifier } = require('./IOVerifier')
 
-// FETCH for a player's abilities
+// FETCH for player list (with their statuses and votes) [SHOULD ALSO RETURN GAME STATE STUFF I THINK]
 
 // FETCH for a player's Role data
 
-// FETCH for a player's notifications
+const socketRequests = (socket) => {
 
-// FETCH for a sharedchat's messages
+    socket.on('REQUEST_ABILITY_INFO', () => {
+        const player = GameManager.getPlayerFromSocketId(socket.id)
+        const abilityData = player.getAllAbilityData()
+        const abilitySlots = player.getAbilitySlots()
+
+        IOManager.emitToPlayer(player.getUsername(), 'RECEIVE_ABILITY_INFO', {
+            abilityData,
+            abilitySlots
+        })
+    })
+
+    socket.on('REQUEST_NOTIF_INFO', () => {
+        const player = GameManager.getPlayerFromSocketId(socket.id)
+        const notifications = player.getNotifications()
+
+        IOManager.emitToPlayer(player.getUsername(), 'RECEIVE_NOTIF_INFO', {
+            notifications
+        })
+    })
+
+    socket.on('REQUEST_SHARED_CHAT_MESSAGES', ({chatId}) => {
+        const player = GameManager.getPlayerFromSocketId(socket.id)
+
+        if (IOVerifier.verifyChatRead(socket.id, chatId)) {
+            const chatMessages = GameManager.getSharedChat(chatId).getMessages()
+            IOManager.emitToPlayer(player.getUsername(), 'RECEIVE_CHAT_MESSAGES', {
+                chatId,
+                messages: chatMessages
+            })
+        }
+    })
+
+    socket.on('REQUEST_SHARED_CHATS', () => {
+        const player = GameManager.getPlayerFromSocketId(socket.id)
+        const chats = player.getReadableChatData()
+        
+        IOManager.emitToPlayer(player.getUsername(), 'RECEIVE_SHARED_CHATS', {
+            chats
+        })
+    })
+
+    socket.on('REQUEST_ROLE_INFO', () => {
+
+    })
+
+}
