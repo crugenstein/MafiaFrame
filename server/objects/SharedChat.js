@@ -1,4 +1,5 @@
 const { IOManager } = require('../io/IOManager')
+const { v4: uuidv4 } = require('uuid')
 
 const MessageType = Object.freeze({
     SERVER: 0,
@@ -7,9 +8,9 @@ const MessageType = Object.freeze({
 })
 
 class SharedChat { // TODO OVERHAUL
-    constructor(chatId, name, readers, writers) {
+    constructor(name, readers, writers) {
         this.name = name
-        this.chatId = chatId
+        this.chatId = uuidv4()
         this.readers = new Set()
         readers.forEach((readerName) => {this.addReader(readerName)})
         this.writers = new Set()
@@ -19,16 +20,20 @@ class SharedChat { // TODO OVERHAUL
 
     addReader(playerName) {
         const player = GameManager.getPlayer(playerName)
-        player.addReadableChat(this.name, this.chatId)
+
+        player.chatsCanRead.add(this.chatId)
         this.readers.add(playerName)
+
         IOManager.addPlayerToRoom(playerName, this.chatId)
         IOManager.emitToPlayer(playerName, 'NEW_CHAT_READ_ACCESS', {chatId: this.chatId})
     }
 
     addWriter(playerName) {
         const player = GameManager.getPlayer(playerName)
-        player.addWriteableChat(this.name, this.chatId)
+
+        player.chatsCanWrite.add(this.chatId)
         this.writers.add(playerName)
+
         IOManager.emitToPlayer(playerName, 'NEW_CHAT_WRITE_ACCESS', {chatId: this.chatId})
     }
 
@@ -69,12 +74,10 @@ class SharedChat { // TODO OVERHAUL
         return this.messages
     }
 
-    getName() {
-        return this.name
-    }
+    get name() {return this._name}
 
-    addMessage(senderName, contents) {
-        const message = {senderName, contents, receiver: this.chatId}
+    addMessage(messageType, senderName, contents) {
+        const message = {messageType, senderName, contents, receiver: this.chatId}
         this.messages = [...this.messages, message]
         IOManager.emitToChat(this.chatId, 'NEW_MESSAGE', message)
     }
