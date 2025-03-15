@@ -34,10 +34,10 @@ class Player {
         /** @type {Map<string, PhaseAbility>} */
         this._activeAbilities = new Map()
 
-        /** @type {number} */
+        /** @type {number} The level of defense intrinsic to the assigned role. */
         this._baseDefense = 0
 
-        /** @type {number} */
+        /** @type {number} The modified level of defense */
         this._defense = 0
 
         /** @type {number} */
