@@ -1,7 +1,9 @@
+const { PlayerAlignment } = require('../objects/Player')
+
 const roleDictionary = {
     "PLACEHOLDER_DETECTIVE": {
         name: "Detective (Placeholder)",
-        alignment: "TOWN",
+        alignment: PlayerAlignment.TOWN,
         class: "INVESTIGATIVE",
         abilities: [
             {abilityKey: "PLACEHOLDER_INVESTIGATE", abilityCount: 2}
@@ -11,7 +13,7 @@ const roleDictionary = {
     },
     "PLACEHOLDER_GUARD": {
         name: "Guard (Placeholder)",
-        alignment: "TOWN",
+        alignment: PlayerAlignment.TOWN,
         class: "PROTECTIVE",
         abilities: [
             {abilityKey: "PLACEHOLDER_PROTECT", abilityCount: Infinity}
@@ -21,7 +23,7 @@ const roleDictionary = {
     },
     "PLACEHOLDER_MAFIOSO": {
         name: "Mafioso (Placeholder)",
-        alignment: "MAFIA",
+        alignment: PlayerAlignment.MAFIA,
         class: "KILLING",
         abilities: [
             {abilityKey: "PLACEHOLDER_MAFIA_KILL", abilityCount: Infinity}
@@ -31,7 +33,7 @@ const roleDictionary = {
     },
     "PLACEHOLDER_GODFATHER": {
         name: "Godfather (Placeholder)",
-        alignment: "MAFIA",
+        alignment: PlayerAlignment.MAFIA,
         class: "KILLING",
         abilities: [
             {abilityKey: "PLACEHOLDER_MAFIA_KILL", abilityCount: Infinity},

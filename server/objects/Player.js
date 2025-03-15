@@ -23,60 +23,94 @@ const NotificationType = Object.freeze({
 
 class Player {
     constructor(socketId, username) {
-        this.socketId = socketId
-        this.username = username
+        this._socketId = socketId
+        this._username = username
+        this._admin = false
         
         this._status = PlayerStatus.SPECTATOR
-        this.admin = false
 
-        this.role = null
-        this.activeAbilities = new Map() // KEY: uuid, VALUE: PhaseAbility object
-        this.baseDefense = 0
-        this.defense = 0
-        this.whispers = 3
-
-        this.abilitySlots = 1
-
-        this.visitors = new Set()
-
-        this.notifications = new Map()
+        this._roleData = null // this is an object that should never be directly returned or modified outside of the assign role
         
-        this._chatsCanWrite = new Set() // object {chatId}
-        this._chatsCanRead = new Set() // object {chatId}
-    }
+        /** @type {Map<string, PhaseAbility>} */
+        this._activeAbilities = new Map()
 
-    assignRole(roleKey) {
-        const roleData = roleDictionary[roleKey]
-        this.role = roleData
+        /** @type {number} */
+        this._baseDefense = 0
 
-        roleData.abilities.forEach( ({abilityKey, abilityCount} ) => {
-            const newAbility = new PhaseAbility(this.username, abilityKey, abilityCount)
-            this.activeAbilities.set(newAbility.id, newAbility)
-        })
+        /** @type {number} */
+        this._defense = 0
 
-        this.baseDefense = roleData.defense
-        this.defense = this.baseDefense
-    }
+        /** @type {number} */
+        this._whispers = 3
 
-    addVisitor(visitor) {
-        this.visitors.add(visitor)
-    }
-    
-    clearVisitors() {
-        this.visitors.clear()
-    }
+        /** @type {number} */
+        this._abilitySlots = 1
 
-    notif(notificationText) {
-        const key = `${GameManager.getPhaseType()}-${GameManager.getPhaseNumber()}`
-        const oldNotifs = this.notifications.get(key) || []
-        const newNotifs = [...oldNotifs, notificationText]
-        this.notifications.set(key, newNotifs)
-        IOManager.emitToPlayer(this.username, 'RECEIVE_NOTIF', {time: key, text: notificationText})
+        /**
+        * Set of player names who visited this player during Ability Queue. Do not access outside of ability queue.
+        * @type {Set<string>}
+        */
+        this._visitors = new Set()
+
+        /**
+        * Keys are strings of form PhaseType-PhaseNumber. Values are arrays of Notification objects.
+        * @type {Map<string, Array<{notificationType: number, notificationText: string}>}
+        */
+        this._notifications = new Map()
+        
+        /**
+        * A set of chat IDs that this player can read messages from.
+        * @type {Set<string>}
+        */
+        this._readableChats = new Set()
+
+        /**
+        * A set of chat IDs that this player can write messages to.
+        * @type {Set<string>}
+        */
+        this._writeableChats = new Set()
     }
 
     /**
+    * Assigns a Role to the player, updating their RoleData information and ability usages.
+    * @param {string} roleKey - The unique Key of the role to assign to this player.
+    */
+    assignRole(roleKey) { // todo make it snappier
+        const roleData = roleDictionary[roleKey]
+        this._roleData = roleData
+
+        roleData.abilities.forEach( ({abilityKey, abilityCount} ) => {
+            const newAbility = new PhaseAbility(this.username, abilityKey, abilityCount)
+            this._activeAbilities.set(newAbility.id, newAbility)
+        })
+
+        this._baseDefense = roleData.defense
+        this._defense = this._baseDefense
+    }
+
+    /**
+    * Notifies the player, emits a notification receive event to the client.
+    * @param {number} notificationType - The type of notification. Refer to NotificationType enum.
+    * @param {string} notificationText - The notification text.
+    */
+    notif(notificationType, notificationText) {
+        const key = `${GameManager.phaseType}-${GameManager.phaseNumber}`
+
+        const oldNotifs = this._notifications.get(key) || []
+        const newNotifs = [...oldNotifs, {notificationType, notificationText}]
+
+        this._notifications.set(key, newNotifs)
+        IOManager.emitToPlayer(this.username, 'RECEIVE_NOTIF', {notificationTime: key, notificationType, notificationText})
+    }
+
+    /** @returns {string} The player's username. */
+    get username() {return this._username}
+
+    /** @returns {boolean} Whether or not this player has admin privileges. */
+    get admin() {return this._admin}
+
+    /**
     * Updates a player's status. If they are not alive, removes their ability to send messages to Shared Chats.
-    * 
     * @param {number} newStatus - The player's new status. Use PlayerStatus enum for translation.
     */
     set status(newStatus) {
@@ -85,101 +119,95 @@ class Player {
                 chat.revokeWrite(this.username)
             })
         }
+
         this._status = newStatus
+        IOManager.emitToPlayer(this.username, 'RECEIVE_STATUS', {status: newStatus})
     }
 
-    setStatus(newStatus) {
-        this.status = newStatus
+    /** @returns {number} The player's status. Refer to PlayerStatus enum in GameManager. */
+    get status() {return this._status}
+
+    /** @returns {string} The name of this player's role.*/
+    get roleName() {return this._roleData.name}
+
+    /** @returns {number} The player's alignment. Refer to PlayerAlignment enum.*/
+    get alignment() {return this._roleData.alignment}
+
+    /**
+    * Sets the player's number of whispers and emits the change as an event to client.
+    * @param {number} count - The number of whispers.
+    */
+    set whispers(count) {
+        this._whispers = count
+        IOManager.emitToPlayer(this.username, 'WHISPER_COUNT_UPDATE', {whisperCount: count})
     }
 
-    getRoleName() {
-        return this.role.name
+    /** @returns {number} How many whispers the player has left. */
+    get whispers() {return this._whispers}
+
+    /**
+    * Sets the player's number of ability usage slots and emits the change as an event to client.
+    * @param {number} count - The number of ability usage slots.
+    */
+    set abilitySlots(count) {
+        this._abilitySlots = count
+        IOManager.emitToPlayer(this.username, 'ABILITY_SLOT_COUNT_UPDATE', {abilitySlotCount: count})
     }
 
-    getUsername() {
-        return this.username
+    /** @returns {number} How many ability slots the player has left. */
+    get abilitySlots() {return this._abilitySlots}
+
+    /**
+    * Sets the player's defense to the maximum of their current defense and the granted level.
+    * Use this during phase ability queues.
+    * @param {number} level - The defense level to grant.
+    */
+    grantDefense(level) {
+        this._defense = Math.max(this.defense, level)
     }
 
-    setDefense(level) {
-        this.defense = Math.max(this.defense, level)
-    }
-
+    /** Resets the player's defense level. Should be called on phase cleanup. */
     resetDefense() {
-        this.defense = this.baseDefense
+        this._defense = this._baseDefense
     }
 
-    getDefense() {
-        return this.defense
-    }
+    /** @returns {number} The player's current defense level.*/
+    get defense() {return this._defense}
 
-    setWhispers(whisperCount) {
-        this.whispers = whisperCount
-    }
-    
-    getWhisperCount() {
-        return this.whispers
-    }
+    /** @returns {string} The player's socketId.*/
+    get socketId() {return this._socketId}
 
-    getSocketId() {
-        return this.socketId
-    }
+    /** @returns {Set<string>} Set of chatIDs that this player can read from. */
+    get readableChats() {return this._readableChats}
 
-    getStatus() {
-        return this.status
-    }
+    /** @returns {Set<string>} Set of chatIDs that this player can send to. */
+    get writeableChats() {return this._writeableChats}
 
+    /** @returns {Map<string, PhaseAbility>} Map of Active Abilities owned by this player. */
+    get activeAbilities() {return this._activeAbilities}
+
+    /**
+    * Gets a PhaseAbility instance that the player owns from its UUID.
+    * @param {string} abilityUUID - The UUID of the ability to fetch. 
+    * @returns {PhaseAbility|null} Returns the associated PhaseAbility object if the player has it. Otherwise returns null. 
+    */
     getAbility(abilityUUID) {
-        return this.activeAbilities.get(abilityUUID) || null
+        return this._activeAbilities.get(abilityUUID) || null
     }
 
-    getAlignment() {
-        return this.roleData.alignment
-    }
+    /** @returns {Array<string>} Array of active ability IDs corresponding to abilities that this player owns. */
+    get activeAbilityIdList() {return [...this._activeAbilities.keys()]}
 
-    getNotifications() {
-        return this.notifications
-    }
-
-    getReadableChatData() {
-        return Array.from(this.chatsCanRead)
-    }
-
-    getWriteableChatData() {
-        return Array.from(this.chatsCanWrite)
-    }
-
-    addReadableChat(name, chatId) {
-        this.chatsCanRead.add({name, chatId})
-    }
-
-    addWriteableChat(name, chatId) {
-        this.chatsCanWrite.add({name, chatId})
-    }
-
-    removeReadableChat(chatId) {
-        const toDelete = [...this.chatsCanRead].find(chat => chat.chatId === chatId)
-        if (toDelete) this.chatsCanRead.delete(toDelete)
-    }
-
-    removeWriteableChat(chatId) {
-        const toDelete = [...this.chatsCanWrite].find(chat => chat.chatId === chatId)
-        if (toDelete) this.chatsCanWrite.delete(toDelete)
-    }
-
-    getAllAbilityData() {
-        return [...this.activeAbilities.values()].map(ability => ability.getVisibleProperties())
-    }
-
-    setAbilitySlots(actionsLeft) {
-        this.abilitySlots = actionsLeft
-    }
-
-    getAbilitySlots() {
-        return this.abilitySlots
-    }
-
+    /** @returns {{username: string, admin: boolean}} Object containing public-facing player data. */
     get publicData() {
-        //todo
+        return ({
+            username: this.username,
+            admin: this.admin
+        })
+    }
+
+    clientGameStateUpdate() {
+        
     }
 }
 
