@@ -206,7 +206,8 @@ class Player {
         })
     }
 
-    clientGameStateUpdate() {
+    /** Emits an event to the client containing all of the player's private data. */
+    clientGameStateUpdate() { // TODO
         
     }
 }
