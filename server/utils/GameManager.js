@@ -390,7 +390,7 @@ class GameManager {
     * Attacks a player, killing them if fatal.
     * @param {string} attackerName - The name of the player dealing the attack.
     * @param {string} victimName - The name of the attack target.
-    * @param {number} attackStrength - The name of the player dealing the attack.
+    * @param {number} attackStrength - The strength of the attack.
     * @param {Array<number>} [specialProperties] - Any special attack properties. (IMPLEMENT LATER)
     * @returns {boolean} - Whether or not the attack was fatal.
     */

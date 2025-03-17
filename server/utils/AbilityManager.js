@@ -2,7 +2,6 @@ const { GameManager } = require("./GameManager")
 const { AbilityTag } = require('../data/abilities')
 
 class AbilityManager {
-    
     /** @type {Array<{user: string, id: string, targetData: Array}>} */
     static _queue = []
 
