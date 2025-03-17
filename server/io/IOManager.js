@@ -13,10 +13,17 @@ class IOManager {
         } else {console.log('ERROR: NO IO ON EMIT')}
     }
 
-    static emitToChat(chatId, event, message) {
+    static emitToRoom(chatId, event, message) {
         if (this.io) {
             this.io.to(chatId).emit(event, message)
         } else {console.log('ERROR: NO IO ON EMIT TO CHAT')}
+    }
+
+    static emitToMafia(event, message) {
+        if (this.io) {
+            const mafiaChat = GameManager.mafiaChat.chatId
+            this.io.to(mafiaChat).emit(event, message)
+        }
     }
 
     static emitToPlayer(username, event, message) {
