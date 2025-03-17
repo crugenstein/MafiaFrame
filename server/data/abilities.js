@@ -1,5 +1,12 @@
 const { GameManager } = require('../utils/GameManager')
 
+const AbilityTag = {
+    DAY: 0, // use only during day
+    NIGHT: 1, // use only during night
+    DESIGNATED: 2, // need DA status to use it
+    ASTRAL: 3 // does not visit
+}
+
 const abilityDictionary = {
     "PLACEHOLDER_INVESTIGATE": {
         name: "Investigate (PLACEHOLDER)",
@@ -13,8 +20,7 @@ const abilityDictionary = {
             user.notif(`${targetName}\'s role is ${role}.`)
         },
         selections: ["SELECT_SINGLE_PLAYER_TARGET"],
-        tags: new Set(["NIGHT"]),
-        hiddenTags: new Set(),
+        tags: [AbilityTag.NIGHT],
         priority: 6
     },
     "PLACEHOLDER_MAFIA_KILL": {
@@ -31,8 +37,7 @@ const abilityDictionary = {
             }
         },
         selections: ["SELECT_SINGLE_PLAYER_TARGET"],
-        tags: new Set(["DESIGNATED", "NIGHT"]),
-        hiddenTags: new Set(),
+        tags: [AbilityTag.NIGHT, AbilityTag.DESIGNATED],
         priority: 9
     },
     "PLACEHOLDER_PROTECT": {
@@ -46,10 +51,9 @@ const abilityDictionary = {
             user.notif(`You used Protect on ${targetName}.`)
         },
         selections: ["SELECT_SINGLE_PLAYER_TARGET"],
-        tags: new Set(["NIGHT"]),
-        hiddenTags: new Set(),
+        tags: [AbilityTag.NIGHT],
         priority: 3
     }
 }
 
-module.exports = { abilityDictionary }
+module.exports = { abilityDictionary, AbilityTag }
