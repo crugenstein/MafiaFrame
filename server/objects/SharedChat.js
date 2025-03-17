@@ -102,7 +102,7 @@ class SharedChat {
         players.forEach((playerName) => {this.revokeWrite(playerName)})
     }
 
-    /** @returns {Array<{messageType: number, senderName: string, contents: string}} - Array of messages sent here. */
+    /** @returns {Array<{messageType: number, senderName: string, contents: string}>} - Array of messages sent here. */
     get messages() {return this._messages}
 
     /** @returns {string} - The name of this Shared Chat. */
@@ -122,6 +122,17 @@ class SharedChat {
         this.messages = [...this.messages, message]
 
         IOManager.emitToRoom(this.chatId, 'NEW_MESSAGE', {message, receiver: this.chatId})
+    }
+
+    /** Fetches the SharedChat data that should be visible to its owner clientside.
+    * @returns {{id: string, name: string, messages: Array<{messageType: number, senderName: string, contents: string}>}} The chat's visible data.
+    */
+    getVisibleData() {
+        return ({
+            id: this.chatId,
+            name: this.name,
+            messages: this.messages,
+        })
     }
 }
 
