@@ -73,9 +73,7 @@ class GameManager {
     /** @type {Set<string>} */
     static _diedLastNight = new Set()
     
-    /**
-    * Starts the "internal clock" that pulses every second. Run this when the game starts.
-    */
+    /** Starts the "internal clock" that pulses every second. Run this when the game starts. */
     static startGameLoop() {
         if (this._gameLoopInterval) return
         this._gameLoopInterval = setInterval(() => {
@@ -87,18 +85,10 @@ class GameManager {
                     else if (this.phaseType === PhaseType.LOBBY) {this.startGame()}
                 }
             }
-            IOManager.globalEmit('GAME_STATE_PULSE', {
-                phaseType: this.phaseType,
-                phaseTimeLeft: this.phaseTimeLeft,
-                gameStatus: this.gameStatus,
-                phaseNumber: this.phaseNumber
-            }) //TODO. Add more?
         }, 1000)
     }
 
-    /**
-    * Stops the internal clock. Run this when the game ends.
-    */
+    /** Stops the internal clock. Run this when the game ends. */
     static stopGameLoop() {
         if (this._gameLoopInterval) {
             clearInterval(this._gameLoopInterval)
@@ -106,16 +96,12 @@ class GameManager {
         }
     }
 
-    /**
-    * Starts the lobby countdown.
-    */
+    /** Starts the lobby countdown. */
     static startLobbyCountdown() {
         this.gameStatus = GameStatus.LOBBY_COUNTDOWN
     }
 
-    /**
-    * Transitions from lobby to first day phase.
-    */
+    /** Transitions from lobby to first day phase. */
     static startGame() {
         this.gameStatus = GameStatus.ROLLOVER
         RoleDistributor.distribute()
@@ -130,9 +116,7 @@ class GameManager {
         this.endNightPhase(false)
     }
 
-    /**
-    * Ends the current Day Phase and starts the next Night Phase.
-    */
+    /** Ends the current Day Phase and starts the next Night Phase. */
     static endDayPhase() {
         this.gameStatus = GameStatus.ROLLOVER
         AbilityManager.processPhaseEnd()
@@ -265,9 +249,7 @@ class GameManager {
         return this._playerSocketMap.get(socketId) || null
     }
 
-    /**
-    * Player data cleanup helper function. Sets values to what they "should be" after phase end.
-    */
+    /** Player data cleanup helper function. Sets values to what they "should be" after phase end. */
     static phaseEndCleanup() {
         this.allPlayers.forEach((playerName) => {
             const player = this.getPlayer(playerName)
