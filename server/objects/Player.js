@@ -206,9 +206,25 @@ class Player {
         })
     }
 
-    /** Emits an event to the client containing all of the player's private data. */
-    clientGameStateUpdate() { // TODO
+    /** Emits an event to the client containing data that should be visible. */
+    clientGameStateUpdate() {
+        let abilityData = []
+        let chatData = []
         
+        this.activeAbilityIdList.forEach((id) => {
+            const ability = this.getAbility(id)
+            abilityData.push(ability.getVisibleData())
+        })
+
+        this.readableChats.forEach((id) => {
+            const chat = GameManager.getSharedChat(id)
+            chatData.push(chat.getVisibleData())
+        })
+
+        const playerList = GameManager.alivePlayers
+        const data = {abilityData, chatData, playerList}
+
+        IOManager.emitToPlayer(this.username, 'CLIENT_GAME_STATE_UPDATE', data)
     }
 }
 
