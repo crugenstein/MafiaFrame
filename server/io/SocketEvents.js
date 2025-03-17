@@ -2,19 +2,18 @@ const { AbilityManager } = require('../utils/AbilityManager')
 const { GameManager } = require('../utils/GameManager')
 const { IOVerifier } = require('./IOVerifier')
 const { IOManager } = require('./IOManager')
+const { lobbyChat } = require('../server') // TODO
 
 const socketEvents = (socket) => {
 
-    socket.on('CLICK_JOIN_GAME', ({ username }) => {
+    socket.on('CLICK_JOIN_GAME', ({ username }) => { // FOR NOW YOU CANNOT JOIN IF THE GAME HAS STARTED. THIS SHOULD BE CHANGED
 
         if (!IOVerifier.verifyJoinGame(socket.id, username)) {
-            console.log('Player tried joining with invalid username')
-            //THROW CLIENTSIDE ERROR
+            console.log('Player failed to join.')
+            IOManager.emitToRoom(socket.id, 'JOIN_ERROR', {errorMessage: "Unable to join game."})
             return
         }
 
-        const joinMessage = { senderName: '[SERVER]', contents: `${username} connected.`}
-        
         if (gameStatus === 'LOBBY_WAITING') {
             const lobbyChat = GameManager.getSharedChat('lobby')
             const newPlayer = GameManager.instantiatePlayer(socket.id, username)
