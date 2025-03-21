@@ -130,8 +130,11 @@ class Player {
     /** @returns {string} The name of this player's role.*/
     get roleName() {return this._roleData.name}
 
-    /** @returns {number} The player's alignment. Refer to PlayerAlignment enum.*/
-    get alignment() {return this._roleData.alignment}
+    /** @returns {number|null} The player's alignment (if they have one). Refer to PlayerAlignment enum.*/
+    get alignment() {
+        if (this._roleData) return this._roleData.alignment
+        else return null
+    }
 
     /**
     * Sets the player's number of whispers and emits the change as an event to client.
@@ -221,8 +224,8 @@ class Player {
             chatData.push(chat.getVisibleData())
         })
 
-        const playerList = GameManager.alivePlayers
-        const data = {abilityData, chatData, playerList}
+        const alivePlayerList = GameManager.alivePlayers
+        const data = {abilityData, chatData, alivePlayerList}
 
         IOManager.emitToPlayer(this.username, 'CLIENT_GAME_STATE_UPDATE', data)
     }
