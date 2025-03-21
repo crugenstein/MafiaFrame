@@ -3,7 +3,7 @@ const { GameManager } = require('../utils/GameManager')
 class IOManager {
 
     static _io = null
-    
+
     static get io() {
         return this._io
     }
@@ -35,10 +35,10 @@ class IOManager {
         if (this.io) {
             const player = GameManager.getPlayer(username)
             if (player) {
-                const receiverSocket = player.getSocketId()
+                const receiverSocket = player.socketId
                 this.io.to(receiverSocket).emit(event, message)
             } else {
-                console.log('ERROR: NO PLAYER EXISTS TO EMIT TO')
+                console.log(`${username} does not exist as a player, so failed to emit`)
             }
         } else {
             console.log('ERROR: NO IO TO EMIT TO PLAYER')
@@ -48,13 +48,13 @@ class IOManager {
     static addPlayerToRoom(username, roomId) {
         const socketId = GameManager.getPlayer(username)?.socketId
         const socket = this.io.sockets.sockets.get(socketId)
-        socket.join(roomId)
+        socket?.join(roomId)
     }
     
     static removePlayerFromRoom(username, roomId) {
-        const socketId = GameManager.getPlayer(username)
+        const socketId = GameManager.getPlayer(username)?.socketId
         const socket = this.io.sockets.sockets.get(socketId)
-        socket.leave(roomId)
+        socket?.leave(roomId)
     }
 }
 
