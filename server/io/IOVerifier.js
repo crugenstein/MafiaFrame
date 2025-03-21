@@ -61,7 +61,7 @@ class IOVerifier {
         return true
     }
 
-    static verifyDAVote(socketId, voteTargetUsername) {
+    static verifyDAvote(socketId, voteTargetUsername) {
         const phase = GameManager.getPhaseType()
         if (phase !== 'DAY') return false
         const sender = GameManager.getPlayerFromSocketId(socketId)

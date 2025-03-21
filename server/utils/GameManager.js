@@ -55,6 +55,9 @@ class GameManager {
     /** @type {SharedChat} */
     static _mafiaChat = null
 
+    /** @type {SharedChat} */
+    static _lobbyChat = null
+
     /**
     * Keys are player names (strings) and values are vote data objects.
     * @type {Map<string, {votedFor: string|null, votesReceived: number, DAvotedFor: string|null, DAvotesReceived: number}>}
@@ -73,9 +76,11 @@ class GameManager {
     /** @type {Set<string>} */
     static _diedLastNight = new Set()
     
-    /** Starts the "internal clock" that pulses every second. Run this when the game starts. */
+    /** Run this when the server starts. Starts the "internal clock" that pulses every second. */
     static startGameLoop() {
         if (this._gameLoopInterval) return
+        this._lobbyChat = new SharedChat('lobby')
+
         this._gameLoopInterval = setInterval(() => {
             if (this.gameStatus === GameStatus.LOBBY_COUNTDOWN || this.gameStatus === GameStatus.IN_PROGRESS) {
                 this.phaseTimeLeft = this.phaseTimeLeft - 1
@@ -541,6 +546,12 @@ class GameManager {
     * @returns {SharedChat} - Mafia Chat object.
     */
     static get mafiaChat() {return this._mafiaChat}
+
+    /**
+    * Returns the Lobby Shared Chat object.
+    * @returns {SharedChat} - Lobby Chat object.
+    */
+    static get lobbyChat() {return this._lobbyChat}
 
     /**
     * Sets the Phase Type and broadcasts the change.

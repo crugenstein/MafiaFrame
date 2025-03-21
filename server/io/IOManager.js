@@ -1,10 +1,15 @@
 const { GameManager } = require('../utils/GameManager')
 
 class IOManager {
-    static io = null
 
-    static setIO(instance) {
-        this.io = instance
+    static _io = null
+    
+    static get io() {
+        return this._io
+    }
+
+    static set io(instance) {
+        this._io = instance
     }
 
     static globalEmit(event, message) {
@@ -41,7 +46,7 @@ class IOManager {
     }
 
     static addPlayerToRoom(username, roomId) {
-        const socketId = GameManager.getPlayer(username)
+        const socketId = GameManager.getPlayer(username)?.socketId
         const socket = this.io.sockets.sockets.get(socketId)
         socket.join(roomId)
     }
