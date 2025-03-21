@@ -1,12 +1,12 @@
 const { NotificationType } = require('../objects/Player')
 const { GameManager } = require('../utils/GameManager')
 
-const AbilityTag = {
+const AbilityTag = Object.freeze({
     DAY: 0, // use only during day
     NIGHT: 1, // use only during night
     DESIGNATED: 2, // need DA status to use it
     ASTRAL: 3 // does not visit
-}
+})
 
 const abilityDictionary = {
     "PLACEHOLDER_INVESTIGATE": {

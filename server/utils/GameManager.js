@@ -672,4 +672,4 @@ class GameManager {
 
 }
 
-module.exports = { GameManager }
+module.exports = { GameManager, GameStatus, PhaseType }
