@@ -5,6 +5,7 @@ const cors = require('cors')
 const { GameManager } = require('./utils/GameManager')
 const { IOManager } = require('./io/IOManager')
 const { registerEvents } = require('./io/SocketEvents')
+const { registerRequests } = require('./io/SocketRequests')
 
 const app = express()
 const server = http.createServer(app)
@@ -27,6 +28,7 @@ io.on('connection', (socket) => {
   console.log(`New client connected: ${socket.id}`)
 
   registerEvents(socket)
+  registerRequests(socket)
 
   socket.on('disconnect', () => {
     console.log(`Client disconnected: ${socket.id}`)
