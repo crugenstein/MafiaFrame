@@ -17,7 +17,12 @@ export const PhaseType = Object.freeze({
 export const useGameStore = create((set, get) => ({
     socket: null,
 
+    sharedChats: new Map(),
+
     gamePhaseType: PhaseType.LOBBY,
+    gameStatusType: GameStatus.LOBBY_WAITING,
+    gamePhaseNumber: 0,
+    gamePhaseTimeLeft: 1000,
 
     initSocket: (socket) => {
         set({ socket })
@@ -25,6 +30,56 @@ export const useGameStore = create((set, get) => ({
         socket.on('PHASE_TYPE_UPDATE', ({ phaseType }) => {
             set({ gamePhaseType: phaseType })
         })
+
+        socket.on('GAME_STATUS_UPDATE', ({ gameStatus }) => {
+            set({ gameStatusType: gameStatus })
+        })
+
+        socket.on('PHASE_NUMBER_UPDATE', ({ phaseNumber }) => {
+            set({ gamePhaseNumber: phaseNumber })
+        })
+
+        socket.on('PHASE_TIME_LEFT_UPDATE', ({ phaseTimeLeft }) => {
+            set({ gamePhaseTimeLeft: phaseTimeLeft })
+        })
+
+        socket.on('NEW_CHAT_READ_ACCESS', ({ chatId, name, messages }) => {
+            set((state) => {
+                const newChats = new Map(state.sharedChats)
+                newChats.set(chatId, { name, messages, canWrite: false })
+                return { sharedChats: newChats }
+            })
+        })
+
+        socket.on('NEW_MESSAGE', ({ message, receiver }) => {
+            set((state) => {
+                const newChats = new Map(state.sharedChats)
+                const chat = newChats.get(receiver)
+                const oldMessages = chat.messages || []
+                chat.messages = [...oldMessages, message]
+                return { sharedChats: newChats }
+            })
+        })
+
+        socket.on('NEW_CHAT_WRITE_ACCESS', ({ chatId }) => {
+            set((state) => {
+                const newChats = new Map(state.sharedChats)
+                const chat = newChats.get(chatId)
+                chat.canWrite = true
+                return { sharedChats: newChats }
+            })
+        })
+
+        socket.on('LOST_CHAT_WRITE_ACCESS', ({ chatId }) => {
+            set((state) => {
+                const newChats = new Map(state.sharedChats)
+                const chat = newChats.get(chatId)
+                chat.canWrite = false
+                return { sharedChats: newChats }
+            })
+        })
+
+
     },
 
     emit: (event, payload) => {
