@@ -1,2 +1,13 @@
 import { createContext, useContext, useEffect, useState } from "react";
-import { io } from 'socket.io-client'
+import { useSocket } from './SocketContext'
+
+const GameContext = createContext(null)
+
+export const useGame = () => {
+    return useContext(GameContext)
+}
+
+export const GameProvider = ({ children }) => {
+
+
+}
