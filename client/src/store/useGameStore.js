@@ -3,6 +3,12 @@ import { io } from 'socket.io-client'
 
 const SOCKET_URL = 'http://localhost:5000' // replace this with a dynamic address later
 
+export const PlayerStatus = Object.freeze({
+    SPECTATOR: 0,
+    ALIVE: 1,
+    DEAD: 2
+})
+
 export const GameStatus = Object.freeze({
     LOBBY_WAITING: 0,
     LOBBY_COUNTDOWN: 1,
@@ -19,8 +25,12 @@ export const PhaseType = Object.freeze({
 
 export const useGameStore = create((set, get) => ({
     socket: null,
+    username: null,
 
     sharedChats: new Map(),
+    lobbyChat: null,
+    allPlayerData: new Map(),
+    playerList: [],
 
     gamePhaseType: PhaseType.LOBBY,
     gameStatusType: GameStatus.LOBBY_WAITING,
@@ -96,6 +106,29 @@ export const useGameStore = create((set, get) => ({
             })
         })
 
+        socket.on('PLAYER_JOIN', ({ playerData }) => {
+            set((state) => {
+                const newPlayerData = new Map(state.allPlayerData)
+                newPlayerData.set(playerData.username, { 
+                    admin: playerData.admin, 
+                    visibleAlignment: 'UNKNOWN', 
+                    status: PlayerStatus.SPECTATOR
+                }) // todo add more stuff?
+                const newPlayerList = [...state.playerList, { username: playerData.username, admin: playerData.admin }]
+                return { allPlayerData: newPlayerData, playerList: newPlayerList }
+            })
+        })
+
+        socket.on('RECEIVE_PLAYER_LIST', ({ playerList }) => {
+            set((state) => {
+                const newPlayerData = new Map(state.allPlayerData)
+                playerList.forEach(({username, visibleAlignment, admin, status}) => {
+                    newPlayerData.set(username, {visibleAlignment, admin, status})
+                })
+                return { allPlayerData: newPlayerData }
+            })
+        })
+
     },
 
     emit: (event, payload) => {
@@ -114,6 +147,14 @@ export const useGameStore = create((set, get) => ({
             set({ socket: null })
             console.log('Socket disconnected.')
         }
+    },
+
+    setUsername: (newName) => {
+        set({ username: newName })
+    },
+
+    setLobbyChat: (chatId) => {
+        set({ lobbyChat: chatId })
     }
 
 }))

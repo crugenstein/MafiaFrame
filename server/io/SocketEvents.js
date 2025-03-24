@@ -16,7 +16,8 @@ const registerEvents = (socket) => {
         GameManager.lobbyChat.addMessage(MessageType.SERVER, '[SERVER]', `${username} connected.`)
         GameManager.lobbyChat.addRW(username)
 
-        IOManager.globalEmit('PLAYER_JOIN', { username })
+        const id = GameManager.lobbyChat.chatId
+        socket.emit('JOIN_SUCCESS', { lobbyChat: id })
     })
 
     socket.on('CLICK_SEND_MESSAGE', ({ contents, chatId }) => {
