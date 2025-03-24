@@ -1,25 +1,8 @@
+const { PlayerStatus } = require('../data/enums')
 const { roleDictionary } = require('../data/roles')
 const { GameManager } = require('../utils/GameManager')
 const { PhaseAbility } = require('./PhaseAbility')
 const { IOManager } = require('../io/IOManager')
-
-const PlayerStatus = Object.freeze({
-    SPECTATOR: 0,
-    ALIVE: 1,
-    DEAD: 2
-})
-
-const PlayerAlignment = Object.freeze({
-    TOWN: 0,
-    MAFIA: 1,
-    NEUTRAL: 2
-})
-
-const NotificationType = Object.freeze({
-    ABILITY_RESULT: 0,
-    WHISPER: 1,
-    SERVER: 2
-})
 
 class Player {
     constructor(socketId, username) {
@@ -231,4 +214,4 @@ class Player {
     }
 }
 
-module.exports = { Player, PlayerStatus, PlayerAlignment, NotificationType }
+module.exports = { Player }

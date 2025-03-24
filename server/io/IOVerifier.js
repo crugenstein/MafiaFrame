@@ -1,5 +1,5 @@
-const { GameManager, GameStatus, PhaseType } = require('../utils/GameManager')
-const { AbilityTag } = require('../data/abilities')
+const { GameStatus, PhaseType, AbilityTag } = require('../data/enums')
+const { GameManager } = require('../utils/GameManager')
 
 class IOVerifier {
 

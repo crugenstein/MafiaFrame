@@ -1,6 +1,6 @@
+const { PlayerAlignment } = require('../data/enums')
 const { IOManager } = require('./IOManager')
 const { GameManager } = require('../utils/GameManager')
-const { PlayerAlignment } = require('../objects/Player')
 
 const registerRequests = (socket) => {
 

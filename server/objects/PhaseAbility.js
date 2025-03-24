@@ -1,4 +1,4 @@
-const { abilityDictionary, AbilityTag } = require('../data/abilities')
+const { abilityDictionary } = require('../data/abilities')
 const { v4: uuidv4 } = require('uuid')
 const { GameManager } = require('../utils/GameManager')
 const { IOManager } = require('../io/IOManager')

@@ -2,12 +2,6 @@ const { GameManager } = require('../utils/GameManager')
 const { IOManager } = require('../io/IOManager')
 const { v4: uuidv4 } = require('uuid')
 
-const MessageType = Object.freeze({
-    SERVER: 0,
-    VOTE: 1,
-    PLAYER_MESSAGE: 2
-})
-
 class SharedChat {
     /**
     * Creates a new shared chat object. It receives a random UUID. Readers and writers are notified of gained access.
@@ -136,4 +130,4 @@ class SharedChat {
     }
 }
 
-module.exports = { SharedChat, MessageType }
+module.exports = { SharedChat }

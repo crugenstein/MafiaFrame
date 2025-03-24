@@ -1,4 +1,4 @@
-const { PlayerAlignment } = require('../objects/Player')
+const { PlayerAlignment } = require('../data/enums')
 
 const roleDictionary = {
     "PLACEHOLDER_DETECTIVE": {

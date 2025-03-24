@@ -1,22 +1,9 @@
+const { GameStatus, PhaseType, PlayerStatus, PlayerAlignment, NotificationType } = require('../data/enums')
 const { IOManager } = require('../io/IOManager')
-const { Player, PlayerStatus, PlayerAlignment, NotificationType } = require('../objects/Player')
-const { SharedChat, MessageType } = require('../objects/SharedChat')
+const { Player } = require('../objects/Player')
+const { SharedChat } = require('../objects/SharedChat')
 const { AbilityManager } = require('./AbilityManager')
 const { RoleDistributor } = require('./RoleDistributor')
-
-const GameStatus = Object.freeze({
-    LOBBY_WAITING: 0,
-    LOBBY_COUNTDOWN: 1,
-    ROLLOVER: 2,
-    IN_PROGRESS: 3,
-    GAME_FINISHED: 4
-})
-
-const PhaseType = Object.freeze({
-    LOBBY: 0,
-    DAY: 1,
-    NIGHT: 2
-})
 
 class GameManager {
     static _gameLoopInterval = null
@@ -672,4 +659,4 @@ class GameManager {
 
 }
 
-module.exports = { GameManager, GameStatus, PhaseType }
+module.exports = { GameManager }

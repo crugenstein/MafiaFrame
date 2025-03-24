@@ -1,7 +1,7 @@
+const { MessageType } = require('../data/enums')
 const { GameManager } = require('../utils/GameManager')
 const { IOVerifier } = require('./IOVerifier')
 const { IOManager } = require('./IOManager')
-const { MessageType } = require('../objects/SharedChat')
 
 const registerEvents = (socket) => {
 

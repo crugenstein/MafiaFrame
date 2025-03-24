@@ -1,5 +1,6 @@
-const { GameManager } = require('./GameManager')
+const { PlayerAlignment } = require('../data/enums')
 const { roleDictionary } = require('../data/roles')
+const { GameManager } = require('./GameManager')
 
 const mafiaProportion = 0.3
 
@@ -28,22 +29,22 @@ class RoleDistributor { // this logic is temporary. This should be made more rob
             GameManager.getPlayer(playerName).assignRole(roleKey)
             const role = roleDictionary[roleKey]
 
-            if (role.alignment === 'MAFIA') {
+            if (role.alignment === PlayerAlignment.MAFIA) {
                 mafiasAssigned++
-                if (role.unique === true) {
+                if (role.unique) {
                     remove(mafiaRoles, roleKey)
                 }
-            } else if (role.alignment === 'TOWN') {
-                if (role.unique === true) {
+            } else if (role.alignment === PlayerAlignment.TOWN) {
+                if (role.unique) {
                     remove(townRoles, roleKey)
                 }
             }
         }
 
         Object.entries(roleDictionary).forEach(([key, role]) => {
-            if (role.alignment === 'MAFIA') {
+            if (role.alignment === PlayerAlignment.MAFIA) {
                 mafiaRoles.push(key)
-            } else if (role.alignment === 'TOWN') {
+            } else if (role.alignment === PlayerAlignment.TOWN) {
                 townRoles.push(key)
             }
         })
