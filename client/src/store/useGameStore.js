@@ -1,4 +1,7 @@
 import { create } from 'zustand'
+import { io } from 'socket.io-client'
+
+const SOCKET_URL = 'http://localhost:5000' // replace this with a dynamic address later
 
 export const GameStatus = Object.freeze({
     LOBBY_WAITING: 0,
@@ -24,7 +27,12 @@ export const useGameStore = create((set, get) => ({
     gamePhaseNumber: 0,
     gamePhaseTimeLeft: 1000,
 
-    initSocket: (socket) => {
+    initSocket: () => {
+        const socket = io(SOCKET_URL, {
+            withCredentials: true,
+            transports: ["websocket"]
+        })
+
         set({ socket })
         
         socket.on('PHASE_TYPE_UPDATE', ({ phaseType }) => {
