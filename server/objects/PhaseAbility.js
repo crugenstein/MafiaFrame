@@ -1,21 +1,24 @@
 const { abilityDictionary } = require('../data/abilities')
 const { v4: uuidv4 } = require('uuid')
-const { GameManager } = require('../utils/GameManager')
 const { IOManager } = require('../io/IOManager')
 const { AbilityManager } = require('../utils/AbilityManager')
 
+/** @typedef {import('../utils/GameManager').GameManager} GameManager */
+
 class PhaseAbility {
     /** Creates an instance of a PhaseAbility.
-    * @param {number} tag - The tag to check for.
+    * @param {string} owner - The name of the player who owns this.
     * @param {string} key - The ability's lookup tag.
     * @param {number} usages - The number of times this can be used.
+    * @param {GameManager} gameInstance - The gameInstance.
     * @param {Array<number>} [addedTags] - Tags to add upon creation.
     * @param {Array<number>} [addedHiddenTags] - Hidden tags to add upon creation.
     */
-    constructor(owner, key, usages, addedTags = [], addedHiddenTags = []) {
+    constructor(owner, key, usages, gameInstance, addedTags = [], addedHiddenTags = []) {
         this._owner = owner
         this._abilityId = uuidv4()
         this._usages = usages
+        this._gameInstance = gameInstance
 
         const abilityData = abilityDictionary[key]
 
@@ -58,7 +61,7 @@ class PhaseAbility {
 
     set usages(count) {
         this._usages = count
-        IOManager.emitToPlayer(this.owner, 'ABILITY_USAGE_UPDATE', {abilityId: this._abilityId, newCount: count})
+        IOManager.emitToPlayer(this._gameInstance.getPlayer(this.owner), 'ABILITY_USAGE_UPDATE', {abilityId: this._abilityId, newCount: count})
     }
 
     /** @returns {Set<number>} All tags (refer to AbilityTag enum) that this ability has.*/
@@ -74,10 +77,10 @@ class PhaseAbility {
     * @param {Array} targetData - The target data. This should be replaced by an object in the future.
     */
     use(targetData) {
-        const ownerPlayer = GameManager.getPlayer(this.owner)
+        const ownerPlayer = this._gameInstance.getPlayer(this.owner)
         ownerPlayer.abilitySlots = ownerPlayer.abilitySlots - 1
         this.usages = this.usages - 1
-        AbilityManager.queueAbility(this.owner, this.id, targetData)
+        AbilityManager.queueAbility(this.ownerPlayer, this, targetData)
     }
 
     /** Fetches the Ability data that should be visible to its owner clientside.

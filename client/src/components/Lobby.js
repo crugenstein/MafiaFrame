@@ -17,6 +17,7 @@ export default function Lobby() {
         const { emit, socket, setUsername, setLobbyChat } = useGameStore.getState()
         
         socket.once('JOIN_SUCCESS', ({lobbyChat}) => {
+            socket.emit('FETCH_PLAYER_LIST')
             setUsername(submittedUsername)
             setLobbyChat(lobbyChat)
         })

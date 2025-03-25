@@ -1,11 +1,14 @@
 const { PlayerStatus } = require('../data/enums')
 const { roleDictionary } = require('../data/roles')
-const { GameManager } = require('../utils/GameManager')
 const { PhaseAbility } = require('./PhaseAbility')
 const { IOManager } = require('../io/IOManager')
 
+/** @typedef {import('../utils/GameManager').GameManager} GameManager */
+
 class Player {
-    constructor(socketId, username) {
+    constructor(socketId, username, gameInstance) {
+
+        this._gameInstance = gameInstance
         this._socketId = socketId
         this._username = username
         this._admin = false
@@ -77,14 +80,17 @@ class Player {
     * @param {string} notificationText - The notification text.
     */
     notif(notificationType, notificationText) {
-        const key = `${GameManager.phaseType}-${GameManager.phaseNumber}`
+        const key = `${this.gameInstance.phaseType}-${this.gameInstance.phaseNumber}`
 
         const oldNotifs = this._notifications.get(key) || []
         const newNotifs = [...oldNotifs, {notificationType, notificationText}]
 
         this._notifications.set(key, newNotifs)
-        IOManager.emitToPlayer(this.username, 'RECEIVE_NOTIF', {notificationTime: key, notificationType, notificationText})
+        IOManager.emitToPlayer(this, 'RECEIVE_NOTIF', {notificationTime: key, notificationType, notificationText})
     }
+
+    /** @returns {GameManager} A reference to the GameManager instance. */
+    get gameInstance() {return this._gameInstance}
 
     /** @returns {string} The player's username. */
     get username() {return this._username}
@@ -104,7 +110,7 @@ class Player {
         }
 
         this._status = newStatus
-        IOManager.emitToPlayer(this.username, 'RECEIVE_STATUS', {status: newStatus})
+        IOManager.emitToPlayer(this, 'RECEIVE_STATUS', {status: newStatus})
     }
 
     /** @returns {number} The player's status. Refer to PlayerStatus enum in GameManager. */
@@ -125,11 +131,14 @@ class Player {
     */
     set whispers(count) {
         this._whispers = count
-        IOManager.emitToPlayer(this.username, 'WHISPER_COUNT_UPDATE', {whisperCount: count})
+        IOManager.emitToPlayer(this, 'WHISPER_COUNT_UPDATE', {whisperCount: count})
     }
 
     /** @returns {number} How many whispers the player has left. */
     get whispers() {return this._whispers}
+
+    /** @returns {Set<string>} A list of visitors. */
+    get visitors() {return this._visitors}
 
     /**
     * Sets the player's number of ability usage slots and emits the change as an event to client.
@@ -137,7 +146,7 @@ class Player {
     */
     set abilitySlots(count) {
         this._abilitySlots = count
-        IOManager.emitToPlayer(this.username, 'ABILITY_SLOT_COUNT_UPDATE', {abilitySlotCount: count})
+        IOManager.emitToPlayer(this, 'ABILITY_SLOT_COUNT_UPDATE', {abilitySlotCount: count})
     }
 
     /** @returns {number} How many ability slots the player has left. */
@@ -150,6 +159,14 @@ class Player {
     */
     grantDefense(level) {
         this._defense = Math.max(this.defense, level)
+    }
+
+    /**
+    * Registers a visit to another player.
+    * @param {string} target - The username of the player to visit.
+    */
+    visit(target) {
+        this.gameInstance.registerVisit(this.username, target)
     }
 
     /** Resets the player's defense level. Should be called on phase cleanup. */
@@ -203,14 +220,14 @@ class Player {
         })
 
         this.readableChats.forEach((id) => {
-            const chat = GameManager.getSharedChat(id)
+            const chat = this.gameInstance.getSharedChat(id)
             chatData.push(chat.getVisibleData())
         })
 
-        const alivePlayerList = GameManager.alivePlayers
+        const alivePlayerList = this.gameInstance.alivePlayers
         const data = {abilityData, chatData, alivePlayerList}
 
-        IOManager.emitToPlayer(this.username, 'CLIENT_GAME_STATE_UPDATE', data)
+        IOManager.emitToPlayer(this, 'CLIENT_GAME_STATE_UPDATE', data)
     }
 }
 

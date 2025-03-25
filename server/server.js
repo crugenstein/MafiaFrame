@@ -23,19 +23,21 @@ app.use(express.json())
 
 // ON SERVER STARTUP
 IOManager.io = io
+const instance = GameManager.getInstance()
 
 io.on('connection', (socket) => {
   console.log(`New client connected: ${socket.id}`)
 
-  registerEvents(socket)
-  registerRequests(socket)
+  registerEvents(socket, instance)
+  registerRequests(socket, instance)
 
   socket.on('disconnect', () => {
     console.log(`Client disconnected: ${socket.id}`)
+    // DO ACTUAL DISCONNECT LOGIC LATER
   })
 })
 
-GameManager.startGameLoop()
+instance.startGameLoop()
 
 server.listen(port, () => {
   console.log(`Server is running on http://localhost:${port}`);

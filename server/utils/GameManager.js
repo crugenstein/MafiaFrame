@@ -6,67 +6,80 @@ const { AbilityManager } = require('./AbilityManager')
 const { RoleDistributor } = require('./RoleDistributor')
 
 class GameManager {
-    static _gameLoopInterval = null
 
-    static _phaseType = PhaseType.LOBBY
-    static _gameStatus = GameStatus.LOBBY_WAITING
+    constructor() {
+        if (GameManager.instance) {return GameManager.instance}
+        
+        GameManager.instance = this
 
-    static _phaseNumber = 0
-    static _phaseTimeLeft = 15
-    static _phaseLength = 150
+        this._gameLoopInterval = null
 
-    /**
-    * Keys are player names (strings) and values are Player objects.
-    * @type {Map<string, Player>}
-    */
-    static _playerNameMap = new Map()
+        this._phaseType = PhaseType.LOBBY
+        this._gameStatus = GameStatus.LOBBY_WAITING
 
-    /**
-    * Keys are socket IDs and values are Player objects.
-    * @type {Map<string, Player>}
-    */
-    static _playerSocketMap = new Map()
+        this._phaseNumber = 0
+        this._phaseTimeLeft = 15
+        this._phaseLength = 150
 
-    /**
-    * Keys are chat IDs and values are SharedChat objects.
-    * @type {Map<string, SharedChat>}
-    */
-    static _sharedChats = new Map()
+        /**
+        * Keys are player names (strings) and values are Player objects.
+        * @type {Map<string, Player>}
+        */
+        this._playerNameMap = new Map()
 
-    /**
-    * Keys are phase numbers and values are SharedChat objects corresponding to each Day Phase chat.
-    * @type {Map<number, SharedChat>}
-    */
-    static _dayPhaseChats = new Map()
-    
-    /** @type {SharedChat} */
-    static _mafiaChat = null
+        /**
+        * Keys are socket IDs and values are Player objects.
+        * @type {Map<string, Player>}
+        */
+        this._playerSocketMap = new Map()
 
-    /** @type {SharedChat} */
-    static _lobbyChat = null
+        /**
+        * Keys are chat IDs and values are SharedChat objects.
+        * @type {Map<string, SharedChat>}
+        */
+        this._sharedChats = new Map()
 
-    /**
-    * Keys are player names (strings) and values are vote data objects.
-    * @type {Map<string, {votedFor: string|null, votesReceived: number, DAvotedFor: string|null, DAvotesReceived: number}>}
-    */
-    static _voteMap = new Map()
+        /**
+        * Keys are phase numbers and values are SharedChat objects corresponding to each Day Phase chat.
+        * @type {Map<number, SharedChat>}
+        */
+        this._dayPhaseChats = new Map()
+        
+        /** @type {SharedChat} */
+        this._mafiaChat = null
 
-    /**
-    * Number of votes needed to Axe a player.
-    * @type {number}
-    */
-    static _votesNeededToAxe = Infinity
+        /** @type {SharedChat} */
+        this._lobbyChat = null
 
-    /** @type {string} */
-    static _designatedAttacker = null
+        /**
+        * Keys are player names (strings) and values are vote data objects.
+        * @type {Map<string, {votedFor: string|null, votesReceived: number, DAvotedFor: string|null, DAvotesReceived: number}>}
+        */
+        this._voteMap = new Map()
 
-    /** @type {Set<string>} */
-    static _diedLastNight = new Set()
-    
+        /**
+        * Number of votes needed to Axe a player.
+        * @type {number}
+        */
+        this._votesNeededToAxe = Infinity
+
+        /** @type {string} */
+        this._designatedAttacker = null
+        
+        /** @type {Set<string>} */
+        this._diedLastNight = new Set()
+    }
+
+    /** @returns {GameManager} */
+    static getInstance() {
+        if (!GameManager.instance) {GameManager.instance = new GameManager()}
+        return GameManager.instance
+    }
+
     /** Run this when the server starts. Starts the "internal clock" that pulses every second. */
-    static startGameLoop() {
+    startGameLoop() {
         if (this._gameLoopInterval) return
-        this._lobbyChat = new SharedChat('lobby')
+        this._lobbyChat = this.createSharedChat('lobby')
 
         this._gameLoopInterval = setInterval(() => {
             if (this.gameStatus === GameStatus.LOBBY_COUNTDOWN || this.gameStatus === GameStatus.IN_PROGRESS) {
@@ -81,7 +94,7 @@ class GameManager {
     }
 
     /** Stops the internal clock. Run this when the game ends. */
-    static stopGameLoop() {
+    stopGameLoop() {
         if (this._gameLoopInterval) {
             clearInterval(this._gameLoopInterval)
             this._gameLoopInterval = null
@@ -89,14 +102,14 @@ class GameManager {
     }
 
     /** Starts the lobby countdown. */
-    static startLobbyCountdown() {
+    startLobbyCountdown() {
         this.gameStatus = GameStatus.LOBBY_COUNTDOWN
     }
 
     /** Transitions from lobby to first day phase. */
-    static startGame() {
+    startGame() {
         this.gameStatus = GameStatus.ROLLOVER
-        RoleDistributor.distribute()
+        RoleDistributor.distribute(GameManager.getInstance())
 
         this._playerNameMap.values().forEach((player) => {
             player.status = PlayerStatus.ALIVE
@@ -109,7 +122,7 @@ class GameManager {
     }
 
     /** Ends the current Day Phase and starts the next Night Phase. */
-    static endDayPhase() {
+    endDayPhase() {
         this.gameStatus = GameStatus.ROLLOVER
         AbilityManager.processPhaseEnd()
 
@@ -138,7 +151,7 @@ class GameManager {
     * Ends the current Night Phase and starts the next Day Phase.
     * @param {boolean} doAbilityQueue - Whether or not to run the queued abilities. Do not do it when starting the game.
     */
-    static endNightPhase(doAbilityQueue) {
+    endNightPhase(doAbilityQueue) {
         this.gameStatus = GameStatus.ROLLOVER
         if (doAbilityQueue) {AbilityManager.processPhaseEnd()}
 
@@ -179,7 +192,7 @@ class GameManager {
     * Checks player win conditions and acts accordingly.
     * @returns {boolean} - Whether or not a game-ending Win Condition has been reached.
     */
-    static checkWinConditions() {
+    checkWinConditions() {
         if (this.aliveMafiaCount + 1 > this.alivePlayerCount) {
             this.endGame('MAFIA VICTORY')
             return true
@@ -195,7 +208,7 @@ class GameManager {
     * Ends the game and broadcasts the result.
     * @param {string} endState - (TEMP) the state that caused the game to end.
     */
-    static endGame(endState) {
+    endGame(endState) {
         this.gameStatus = GameStatus.GAME_FINISHED
         this.stopGameLoop()
         IOManager.globalEmit('GAME_END', { endState })
@@ -208,11 +221,11 @@ class GameManager {
     * @param {string} username - The username of the player.
     * @returns {Player|null} - Returns the newly created Player object or null if the username or socket are occupied.
     */
-    static instantiatePlayer(socketId, username) {
+    instantiatePlayer(socketId, username) {
         if (this._playerNameMap.has(username)) return null
         if (this._playerSocketMap.has(socketId)) return null
 
-        const newPlayer = new Player(socketId, username)
+        const newPlayer = new Player(socketId, username, GameManager.getInstance())
 
         this._playerNameMap.set(username, newPlayer)
         this._playerSocketMap.set(socketId, newPlayer)
@@ -228,7 +241,7 @@ class GameManager {
     * @param {string} username - The username of the player.
     * @returns {Player|null} - Returns the Player if it exists and null otherwise.
     */
-    static getPlayer(username) {
+    getPlayer(username) {
         return this._playerNameMap.get(username) || null
     }
 
@@ -237,12 +250,12 @@ class GameManager {
     * @param {string} socketId - The socketId of the player.
     * @returns {Player|null} - Returns the Player if it exists and null otherwise.
     */
-    static getPlayerFromSocketId(socketId) {
+    getPlayerFromSocketId(socketId) {
         return this._playerSocketMap.get(socketId) || null
     }
 
     /** Player data cleanup helper function. Sets values to what they "should be" after phase end. */
-    static phaseEndCleanup() {
+    phaseEndCleanup() {
         this.allPlayers.forEach((playerName) => {
             const player = this.getPlayer(playerName)
 
@@ -260,7 +273,7 @@ class GameManager {
     * @param {string} chatId - The id of the SharedChat.
     * @returns {SharedChat|null} - Returns the SharedChat if it exists and null otherwise.
     */
-    static getSharedChat(chatId) {
+    getSharedChat(chatId) {
         return this._sharedChats.get(chatId) || null
     }
     
@@ -269,7 +282,7 @@ class GameManager {
     * @param {number} [dayNumber] - Which Day Phase chat to retrieve. Defaults to current Day.
     * @returns {SharedChat|null} - Returns the SharedChat if it exists and null otherwise.
     */
-    static getDayPhaseChat(dayNumber = this.phaseNumber) {
+    getDayPhaseChat(dayNumber = this.phaseNumber) {
         return this._dayPhaseChats.get(dayNumber) || null
     }
 
@@ -278,7 +291,7 @@ class GameManager {
     * @param {string} username - The username of the player.
     * @returns {boolean} - Whether or not the username corresponds to an alive player.
     */
-    static isAlive(username) {
+    isAlive(username) {
         const player = this.getPlayer(username)
 
         if (!player) return false
@@ -292,7 +305,7 @@ class GameManager {
     * @param {string} username - The username of the player.
     * @returns {boolean} - Whether or not the username corresponds to an alive Mafia player.
     */
-    static isAliveMafia(username) {
+    isAliveMafia(username) {
         const player = this.getPlayer(username)
 
         if (!player) return false
@@ -308,10 +321,9 @@ class GameManager {
     * @param {Array<string>} [writers] - A list of usernames to grant write access to.
     * @returns {SharedChat} - Returns the newly created Shared Chat object.
     */
-    static createSharedChat(displayName, readers = [], writers = []) {
-        const newChat = new SharedChat(displayName, readers, writers)
-        this._sharedChats.add(newChat.id, newChat)
-
+    createSharedChat(displayName, readers = [], writers = []) {
+        const newChat = new SharedChat(displayName, GameManager.getInstance(), readers, writers)
+        this._sharedChats.set(newChat.chatId, newChat)
         return newChat
     }
 
@@ -320,7 +332,7 @@ class GameManager {
     * @param {string} voterName - The name of the player casting the vote.
     * @param {string|null} targetName - The name of the target. If null, represents a revoked vote.
     */
-    static registerVote(voterName, targetName) {
+    registerVote(voterName, targetName) {
         if (!this.isAlive(voterName)) {
             console.error("Non-alive or nonexistent player attempted to cast vote.")
             return
@@ -365,7 +377,7 @@ class GameManager {
     * Axes a player and concludes the current Day Phase.
     * @param {string} victimName - The name of the player to be Axed.
     */
-    static axePlayer(targetName) {
+    axePlayer(targetName) {
         if (!this.isAlive(targetName)) {
             console.error("Server attempted to axe non-alive player.")
             return
@@ -386,7 +398,7 @@ class GameManager {
     * @param {Array<number>} [specialProperties] - Any special attack properties. (IMPLEMENT LATER)
     * @returns {boolean} - Whether or not the attack was fatal.
     */
-    static registerAttack(attackerName, victimName, attackStrength, specialProperties = []) {
+    registerAttack(attackerName, victimName, attackStrength, specialProperties = []) {
         const attacker = this.getPlayer(attackerName)
         const victim = this.getPlayer(victimName)
 
@@ -404,7 +416,7 @@ class GameManager {
     * Kills a player, broadcasting the event and updating the list of players who died during the current phase.
     * @param {string} victimName - The name of the player to be killed.
     */
-    static killPlayer(victimName) {
+    killPlayer(victimName) {
         if (!this.isAlive(victimName)) return // this might happen if the player is killed multiple times per phase transition
 
         const victim = this.getPlayer(victimName)
@@ -423,7 +435,7 @@ class GameManager {
     * @param {string} visitorName - The name of the visitor.
     * @param {string} targetName - The player being visited.
     */
-    static registerVisit(visitorName, targetName) {
+    registerVisit(visitorName, targetName) {
         const target = this.getPlayer(targetName)
         target.visitors.add(visitorName)
     }
@@ -434,7 +446,7 @@ class GameManager {
     * @param {string} recipientName - The player being whispered.
     * @param {string} contents - The contents of the whisper.
     */
-    static registerWhisper(senderName, recipientName, contents) {
+    registerWhisper(senderName, recipientName, contents) {
         const sender = this.getPlayer(senderName)
         const recipient = this.getPlayer(recipientName)
 
@@ -449,7 +461,7 @@ class GameManager {
     * @param {string} voterName - The name of the player casting the vote.
     * @param {string|null} targetName - The name of the target. If null, represents a revoked vote.
     */
-    static registerDAvote(voterName, targetName) {
+    registerDAvote(voterName, targetName) {
         if (!this.isAlive(voterName) || !this.isMafia(voterName)) {
             console.error("Non-alive or nonexistent or non-mafia player attempted to cast DA vote.")
             return
@@ -480,7 +492,7 @@ class GameManager {
         }
 
         this._voteMap.set(voterName, voterData)
-        IOManager.emitToMafia('DA_VOTE_CAST', {newVoteTarget: targetName, previousVoteTarget: oldTarget})
+        IOManager.emitToRoom(this.mafiaChat.chatId, 'DA_VOTE_CAST', {newVoteTarget: targetName, previousVoteTarget: oldTarget})
 
         this.mafiaChat.addMessage(MessageType.VOTE, '[SERVER]', `${voterName} has DA-voted for ${targetName}. They now have ${newTargetData.DAvotesReceived} vote(s).`)
     }
@@ -489,7 +501,7 @@ class GameManager {
     * Elects and updates the Designated Attacker property. Chooses randomly between tied players.
     * Notifies the Designated Attacker when they are chosen and broadcasts this event to the Mafia.
     */
-    static electDA() {
+    electDA() {
         let maxVotes = -Infinity
         let maxVoters = new Set()
 
@@ -514,37 +526,37 @@ class GameManager {
     * Returns an array of alive player usernames.
     * @returns {Array<string>} - An array of alive player usernames.
     */
-    static get alivePlayers() {return [...this._playerNameMap.values()].filter(player => player.status === PlayerStatus.ALIVE)}
+    get alivePlayers() {return [...this._playerNameMap.keys()].filter(player => {this.getPlayer(player).status === PlayerStatus.ALIVE})}
 
     /**
     * Returns an array of alive Mafia player usernames.
     * @returns {Array<string>} - An array of alive Mafia player usernames.
     */
-    static get aliveMafia() {return [...this._playerNameMap.values()].filter(player => (player.status === PlayerStatus.ALIVE && player.alignment === PlayerAlignment.MAFIA))}
+    get aliveMafia() {return [...this._playerNameMap.keys()].filter(player => (this.getPlayer(player).status === PlayerStatus.ALIVE && this.getPlayer(player).alignment === PlayerAlignment.MAFIA))}
   
     /**
     * Returns an array of all player usernames.
     * @returns {Array<string>} - An array of player usernames.
     */
-    static get allPlayers() {return [...this._playerNameMap.values()]}
+    get allPlayers() {return [...this._playerNameMap.keys()]}
 
     /**
     * Returns the Mafia Shared Chat object.
     * @returns {SharedChat} - Mafia Chat object.
     */
-    static get mafiaChat() {return this._mafiaChat}
+    get mafiaChat() {return this._mafiaChat}
 
     /**
     * Returns the Lobby Shared Chat object.
     * @returns {SharedChat} - Lobby Chat object.
     */
-    static get lobbyChat() {return this._lobbyChat}
+    get lobbyChat() {return this._lobbyChat}
 
     /**
     * Sets the Phase Type and broadcasts the change.
     * @param {number} type - The new phase type. Use the PhaseType enum in GameManager.
     */
-    static set phaseType(type) {
+    set phaseType(type) {
         this._phaseType = type
         IOManager.globalEmit('PHASE_TYPE_UPDATE', {phaseType: type})
     }
@@ -553,13 +565,13 @@ class GameManager {
     * Returns the Phase Type.
     * @returns {number} - The Phase Type. Refer to GameManager enum for translation.
     */
-    static get phaseType() {return this._phaseType}
+    get phaseType() {return this._phaseType}
 
     /**
     * Sets the Game Status and broadcasts the change.
     * @param {number} status - The new status. Use the GameStatus enum in GameManager.
     */
-    static set gameStatus(status) {
+    set gameStatus(status) {
         this._gameStatus = status
         IOManager.globalEmit('GAME_STATUS_UPDATE', {gameStatus: status})
     }
@@ -568,13 +580,13 @@ class GameManager {
     * Returns the Game Status.
     * @returns {number} - The Game Status. Refer to GameManager enum for translation.
     */
-    static get gameStatus() {return this._gameStatus}
+    get gameStatus() {return this._gameStatus}
 
     /**
     * Sets the Phase Number and broadcasts the change.
     * @param {number} number - The Phase number.
     */
-    static set phaseNumber(number) {
+    set phaseNumber(number) {
         this._phaseNumber = number
         IOManager.globalEmit('PHASE_NUMBER_UPDATE', {phaseNumber: number})
     }
@@ -583,13 +595,13 @@ class GameManager {
     * Returns the Phase Number.
     * @returns {number} - The current phase number.
     */
-    static get phaseNumber() {return this._phaseNumber}
+    get phaseNumber() {return this._phaseNumber}
 
     /**
     * Sets the Phase Time Left and broadcasts the change.
     * @param {number} time - The time left in the current phase in seconds.
     */
-    static set phaseTimeLeft(time) {
+    set phaseTimeLeft(time) {
         this._phaseTimeLeft = time
         IOManager.globalEmit('PHASE_TIME_LEFT_UPDATE', {phaseTimeLeft: time})
     }
@@ -598,13 +610,13 @@ class GameManager {
     * Returns the time remaining in the phase, in seconds.
     * @returns {number} - Remaining phase time, in seconds.
     */
-    static get phaseTimeLeft() {return this._phaseTimeLeft}
+    get phaseTimeLeft() {return this._phaseTimeLeft}
 
     /**
     * Sets the Phase Length.
     * @param {number} length - The new phase length in seconds.
     */
-    static set phaseLength(length) {
+    set phaseLength(length) {
         this._phaseLength = length
     }
 
@@ -612,26 +624,26 @@ class GameManager {
     * Returns the Phase Length.
     * @returns {number} - The phase length, in seconds.
     */
-    static get phaseLength() {return this._phaseLength}
+    get phaseLength() {return this._phaseLength}
 
     /**
     * Returns the username of the Designated Attacker.
     * @returns {string|null} - The name of the Designated Attacker or null if there is no Designated Attacker.
     */
-    static get designatedAttacker() {return this._designatedAttacker}
+    get designatedAttacker() {return this._designatedAttacker}
 
     /**
     * Sets the username of the Designated Attacker and notifies the Mafia of the change. Also sends a notifcation to the new DA.
     * @param {string|null} name - The name of the new Designated Attacker. If null, we are "resetting" the DA.
     */
-    static set designatedAttacker(name) {
+    set designatedAttacker(name) {
         if (name !== null && !this.isAliveMafia(name)) {
             console.error('Designated Attacker cannot be set to a player who is not an alive Mafia member')
             return
         }
 
         this._designatedAttacker = name
-        IOManager.emitToMafia('DA_UPDATE', {DA: name})
+        IOManager.emitToRoom(this.mafiaChat.chatId, 'DA_UPDATE', {DA: name})
 
         if (name === null) return
 
@@ -643,19 +655,19 @@ class GameManager {
     * Returns an array of players who died during the previous Night Phase.
     * @returns {Array<string>} - An array of recently deceased player names.
     */
-    static get diedLastNight() {return Array.from(this._diedLastNight)}
+    get diedLastNight() {return Array.from(this._diedLastNight)}
         
     /**
     * Returns the number of alive players.
     * @returns {number} - The number of alive players.
     */
-    static get alivePlayerCount() {return this.alivePlayers.length}
+    get alivePlayerCount() {return this.alivePlayers.length}
 
     /**
     * Returns the number of alive Mafia players.
     * @returns {number} - The number of alive Mafia players.
     */
-    static get aliveMafiaCount() {return this.aliveMafia.length}
+    get aliveMafiaCount() {return this.aliveMafia.length}
 
 }
 

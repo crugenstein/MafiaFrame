@@ -1,5 +1,3 @@
-const { GameManager } = require('../utils/GameManager')
-
 class IOManager {
 
     static _io = null
@@ -24,35 +22,27 @@ class IOManager {
         } else {console.log('ERROR: NO IO ON EMIT TO CHAT')}
     }
 
-    static emitToMafia(event, message) {
+    static emitToPlayer(player, event, message) {
         if (this.io) {
-            const mafiaChat = GameManager.mafiaChat.chatId
-            this.io.to(mafiaChat).emit(event, message)
-        }
-    }
-
-    static emitToPlayer(username, event, message) {
-        if (this.io) {
-            const player = GameManager.getPlayer(username)
             if (player) {
                 const receiverSocket = player.socketId
                 this.io.to(receiverSocket).emit(event, message)
             } else {
-                console.log(`${username} does not exist as a player, so failed to emit`)
+                console.log(`${player.username} does not exist as a player, so failed to emit`)
             }
         } else {
             console.log('ERROR: NO IO TO EMIT TO PLAYER')
         }
     }
 
-    static addPlayerToRoom(username, roomId) {
-        const socketId = GameManager.getPlayer(username)?.socketId
+    static addPlayerToRoom(player, roomId) {
+        const socketId = player.socketId
         const socket = this.io.sockets.sockets.get(socketId)
         socket?.join(roomId)
     }
     
-    static removePlayerFromRoom(username, roomId) {
-        const socketId = GameManager.getPlayer(username)?.socketId
+    static removePlayerFromRoom(player, roomId) {
+        const socketId = player.socketId
         const socket = this.io.sockets.sockets.get(socketId)
         socket?.leave(roomId)
     }
