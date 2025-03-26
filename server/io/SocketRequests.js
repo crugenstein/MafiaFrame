@@ -1,9 +1,27 @@
-// FETCH for player list (with their statuses and votes) [SHOULD ALSO RETURN GAME STATE STUFF I THINK]
+const { PlayerAlignment } = require('../data/enums')
+const { IOManager } = require('./IOManager')
 
-// FETCH for a player's abilities
+const registerRequests = (socket, instance) => {
 
-// FETCH for a player's Role data
+    socket.on('FETCH_PLAYER_LIST', () => {
+        const player = instance.getPlayerFromSocketId(socket.id)
 
-// FETCH for a player's notifications
+        const playerList = instance.allPlayers.map((username) => {
+            const target = instance.getPlayer(username)
+            const visibleAlignment = (player.alignment === PlayerAlignment.MAFIA && target.alignment === PlayerAlignment.MAFIA) ? 'MAFIA' : 'UNKNOWN'
+    
+            return ({
+                username, 
+                visibleAlignment, 
+                admin: target.admin, 
+                status: target.status
+            })
+        })
 
-// FETCH for a sharedchat's messages
+        IOManager.emitToPlayer(player, 'RECEIVE_PLAYER_LIST', {
+            playerList
+        })
+    })
+}
+
+module.exports = { registerRequests }

@@ -1,50 +1,48 @@
-const { GameManager } = require('../utils/GameManager')
+const { NotificationType, AbilityTag } = require('../data/enums')
+
+/** @typedef {import('../utils/GameManager').GameManager} GameManager */
 
 const abilityDictionary = {
     "PLACEHOLDER_INVESTIGATE": {
         name: "Investigate (PLACEHOLDER)",
         description: "Select a target. You will learn their Role.",
-        effect: ({userName, targetName}) => {
-            user = GameManager.getPlayer(userName)
-            target = GameManager.getPlayer(targetName)
+        effect: ({user, target, instance}) => {
+            const userPlayer = instance.getPlayer(user)
+            const targetPlayer = instance.getPlayer(target)
 
-            const role = target.getRoleName()
-            user.notif(`You used Investigate.`)
-            user.notif(`${targetName}\'s role is ${role}.`)
+            const role = targetPlayer.roleName
+            userPlayer.notif(NotificationType.ABILITY_RESULT, `You used Investigate.`)
+            userPlayer.notif(NotificationType.ABILITY_RESULT, `${target}\'s role is ${role}.`)
         },
         selections: ["SELECT_SINGLE_PLAYER_TARGET"],
-        tags: new Set(["NIGHT"]),
+        tags: [AbilityTag.NIGHT],
         priority: 6
     },
     "PLACEHOLDER_MAFIA_KILL": {
         name: "Attack (PLACEHOLDER)",
         description: "You must be the Mafia's Designated Attacker to use this. Select a target. You will deal them a Basic Attack.",
-        effect: ({userName, targetName}) => {
-            user = GameManager.getPlayer(userName)
-            target = GameManager.getPlayer(targetName)
+        effect: ({user, target, instance}) => {
+            const userPlayer = instance.getPlayer(user)
 
-            if (GameManager.registerAttack(userName, targetName, 1)) {
-                user.notif(`You killed ${targetName} with Mafia Attack.`)
-            } else {
-                user.notif(`You tried killing ${targetName} with Mafia Attack, but it failed.`)
-            }
+            if (instance.registerAttack(user, target, 1)) {userPlayer.notif(NotificationType.ABILITY_RESULT, `You killed ${target} with Mafia Attack.`)} 
+            else {userPlayer.notif(NotificationType.ABILITY_RESULT, `You tried killing ${target} with Mafia Attack, but it failed.`)}
         },
         selections: ["SELECT_SINGLE_PLAYER_TARGET"],
-        tags: new Set(["DESIGNATED", "NIGHT"]),
+        tags: [AbilityTag.NIGHT, AbilityTag.DESIGNATED],
         priority: 9
     },
     "PLACEHOLDER_PROTECT": {
         name: "Protect (PLACEHOLDER)",
         description: "Select a target. You will grant them Basic Defense.",
-        effect: ({userName, targetName}) => {
-            user = GameManager.getPlayer(userName)
-            target = GameManager.getPlayer(targetName)
+        effect: ({user, target, instance}) => {
+            const userPlayer = instance.getPlayer(user)
+            const targetPlayer = instance.getPlayer(target)
 
-            target.setDefense(1)
-            user.notif(`You used Protect on ${targetName}.`)
+            targetPlayer.grantDefense(1)
+            userPlayer.notif(NotificationType.ABILITY_RESULT, `You used Protect on ${target}.`)
         },
         selections: ["SELECT_SINGLE_PLAYER_TARGET"],
-        tags: new Set(["NIGHT"]),
+        tags: [AbilityTag.NIGHT],
         priority: 3
     }
 }
