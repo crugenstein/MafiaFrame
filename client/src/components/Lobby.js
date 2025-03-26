@@ -7,6 +7,7 @@ import ChatBox from './ChatBox'
 
 export default function Lobby() {
     const username = useGameStore(state => state.username)
+    const admin = useGameStore(state => state.admin)
     const lobbyChatId = useGameStore(state => state.lobbyChat)
     const playerList = useGameStore(state => state.playerList)
     
@@ -15,11 +16,12 @@ export default function Lobby() {
     ))
     
     function handleJoin(submittedUsername) {
-        const { emit, socket, setUsername, setLobbyChat } = useGameStore.getState()
+        const { emit, socket, setUsername, setLobbyChat, setAdmin } = useGameStore.getState()
         
-        socket.once('JOIN_SUCCESS', ({lobbyChat}) => {
+        socket.once('JOIN_SUCCESS', ({lobbyChat, isAdminOnJoin}) => {
             socket.emit('FETCH_PLAYER_LIST')
             setUsername(submittedUsername)
+            setAdmin(isAdminOnJoin)
             setLobbyChat(lobbyChat)
         })
 
@@ -34,13 +36,13 @@ export default function Lobby() {
             <h3>Users: {playerDisplay.join(', ')}</h3>
             <ChatBox chatId={lobbyChatId}/>
         </Container>
-        <Navbar fixed="bottom" bg="dark" variant="dark">
+        {admin && <Navbar fixed="bottom" bg="dark" variant="dark">
             <Container className="justify-content-center">
                 <Button variant="outline-light" className='mx-2' onClick={() => console.log("1")}>1</Button>
                 <Button variant="outline-light" className='mx-2' onClick={() => console.log("2")}>2</Button>
                 <Button variant="outline-light" className='mx-2' onClick={() => console.log("3")}>3</Button>
             </Container>
-        </Navbar>
+        </Navbar>}
         </div>
     )
 }

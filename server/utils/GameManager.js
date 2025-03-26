@@ -13,6 +13,7 @@ class GameManager {
         GameManager.instance = this
 
         this._gameLoopInterval = null
+        this._hasAdmin = false
 
         this._phaseType = PhaseType.LOBBY
         this._gameStatus = GameStatus.LOBBY_WAITING
@@ -668,6 +669,19 @@ class GameManager {
     * @returns {number} - The number of alive Mafia players.
     */
     get aliveMafiaCount() {return this.aliveMafia.length}
+
+    /**
+    * @returns {boolean} - Whether or not there is an admin in the lobby.
+    */
+    get hasAdmin() {return this._hasAdmin}
+
+    /** Promotes a player to admin. 
+    * @param {Player} player - The player to promote.
+    */
+    promote(player) {
+        player.admin = true
+        this._hasAdmin = true
+    }
 
 }
 
