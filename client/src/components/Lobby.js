@@ -1,6 +1,7 @@
 import React from 'react'
 import LobbyLogin from './LobbyLogin'
-import { Container } from 'react-bootstrap'
+import "bootstrap/dist/css/bootstrap.min.css"
+import { Container, Button, Navbar } from 'react-bootstrap'
 import { useGameStore } from '../store/useGameStore'
 import ChatBox from './ChatBox'
 
@@ -28,10 +29,18 @@ export default function Lobby() {
     }
     
     return (
-        !username ? <LobbyLogin onUsernameSubmit={handleJoin}/> :
+        !username ? <LobbyLogin onUsernameSubmit={handleJoin}/> : <div>
         <Container className="align-items-center d-flex" style={{height:'100vh'}}>
             <h3>Users: {playerDisplay.join(', ')}</h3>
             <ChatBox chatId={lobbyChatId}/>
         </Container>
+        <Navbar fixed="bottom" bg="dark" variant="dark">
+            <Container className="justify-content-center">
+                <Button variant="outline-light" className='mx-2' onClick={() => console.log("1")}>1</Button>
+                <Button variant="outline-light" className='mx-2' onClick={() => console.log("2")}>2</Button>
+                <Button variant="outline-light" className='mx-2' onClick={() => console.log("3")}>3</Button>
+            </Container>
+        </Navbar>
+        </div>
     )
 }
