@@ -1,56 +1,27 @@
+const { PlayerAlignment } = require('../data/enums')
 const { IOManager } = require('./IOManager')
-const { GameManager } = require('../utils/GameManager')
-const { IOVerifier } = require('./IOVerifier')
 
-// FETCH for player list (with their statuses and votes) [SHOULD ALSO RETURN GAME STATE STUFF I THINK]
+const registerRequests = (socket, instance) => {
 
-// FETCH for a player's Role data
+    socket.on('FETCH_PLAYER_LIST', () => {
+        const player = instance.getPlayerFromSocketId(socket.id)
 
-const socketRequests = (socket) => {
-
-    socket.on('REQUEST_ABILITY_INFO', () => {
-        const player = GameManager.getPlayerFromSocketId(socket.id)
-        const abilityData = player.getAllAbilityData()
-        const abilitySlots = player.getAbilitySlots()
-
-        IOManager.emitToPlayer(player.getUsername(), 'RECEIVE_ABILITY_INFO', {
-            abilityData,
-            abilitySlots
-        })
-    })
-
-    socket.on('REQUEST_NOTIF_INFO', () => {
-        const player = GameManager.getPlayerFromSocketId(socket.id)
-        const notifications = player.getNotifications()
-
-        IOManager.emitToPlayer(player.getUsername(), 'RECEIVE_NOTIF_INFO', {
-            notifications
-        })
-    })
-
-    socket.on('REQUEST_SHARED_CHAT_MESSAGES', ({chatId}) => {
-        const player = GameManager.getPlayerFromSocketId(socket.id)
-
-        if (IOVerifier.verifyChatRead(socket.id, chatId)) {
-            const chatMessages = GameManager.getSharedChat(chatId).getMessages()
-            IOManager.emitToPlayer(player.getUsername(), 'RECEIVE_CHAT_MESSAGES', {
-                chatId,
-                messages: chatMessages
+        const playerList = instance.allPlayers.map((username) => {
+            const target = instance.getPlayer(username)
+            const visibleAlignment = (player.alignment === PlayerAlignment.MAFIA && target.alignment === PlayerAlignment.MAFIA) ? 'MAFIA' : 'UNKNOWN'
+    
+            return ({
+                username, 
+                visibleAlignment, 
+                admin: target.admin, 
+                status: target.status
             })
-        }
-    })
+        })
 
-    socket.on('REQUEST_SHARED_CHATS', () => {
-        const player = GameManager.getPlayerFromSocketId(socket.id)
-        const chats = player.getReadableChatData()
-        
-        IOManager.emitToPlayer(player.getUsername(), 'RECEIVE_SHARED_CHATS', {
-            chats
+        IOManager.emitToPlayer(player, 'RECEIVE_PLAYER_LIST', {
+            playerList
         })
     })
-
-    socket.on('REQUEST_ROLE_INFO', () => {
-
-    })
-
 }
+
+module.exports = { registerRequests }

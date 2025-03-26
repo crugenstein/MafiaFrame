@@ -1,83 +1,70 @@
-const { GameManager } = require('../utils/GameManager')
+const { GameStatus, PhaseType, AbilityTag } = require('../data/enums')
 
 class IOVerifier {
 
-    static verifyJoinGame(socketId, username) {
-        if (GameManager.players.has(username)) return false
+    static verifyJoinGame(socketId, username, instance) {
+        if (instance.gameStatus !== GameStatus.LOBBY_WAITING ||
+            instance.getPlayerFromSocketId(socketId) || 
+            instance.getPlayer(username)) return false
         return true
     }
 
-    static verifyChatMessage(socketId, message, chatId) {
-        const attemptedChat = GameManager.getSharedChat(chatId)
-        if (!attemptedChat) return false
-        const senderName = GameManager.getPlayerFromSocketId(socketId).getUsername()
-        if (!attemptedChat.canWrite(senderName)) return false
-        //probably check message length and some other stuff
+    static verifyChatMessage(socketId, message, chatId, instance) {
+        const attemptedChat = instance.getSharedChat(chatId)
+        const senderName = instance.getPlayerFromSocketId(socketId).username
+        if (!attemptedChat ||
+            !attemptedChat.canWrite(senderName) ||
+            instance.gameStatus === GameStatus.ROLLOVER) return false
         return true
     }
     
-    static verifySubmitAbility(socketId, abilityUUID, targetData) {
-        const user = GameManager.getPlayerFromSocketId(socketId)
-        if (!user) return false
-        if (GameManager.isAlive(user.getUsername())) return false
-        const ability = user.getAbility(abilityUUID)
-        if (!ability) return false
-        if (!ability.getUsesLeft() < 1) return false
-        if (!ability.hasTag('FREE') && user.getAbilitySlots() < 1) return false
-        const phase = GameManager.getPhaseType()
-        if (ability.hasTag('DAY') && phase !== 'DAY') return false
-        else if (ability.hasTag('NIGHT') && phase !== 'NIGHT') return false
-        const selectionList = ability.getSelections()
+    static verifySubmitAbility(socketId, abilityId, targetData, instance) {
+        const user = instance.getPlayerFromSocketId(socketId)
+        const ability = user.getAbility(abilityId)
+        if (!ability ||
+            ability.usages < 1 ||
+            user.abilitySlots < 1 ||
+            !instance.isAlive(user.username) ||
+            instance.gameStatus === GameStatus.ROLLOVER ||
+            (ability.hasTag(AbilityTag.DAY) && instance.phaseType !== PhaseType.DAY) ||
+            (ability.hasTag(AbilityTag.NIGHT) && instance.phaseType !== PhaseType.NIGHT) ||
+            (ability.hasTag(AbilityTag.DESIGNATED) && instance.designatedAttacker !== user.username)
+        ) return false
 
-        if (JSON.stringify(selectionList) === JSON.stringify(["SELECT_SINGLE_PLAYER_TARGET"])) {
+        //BELOW THIS IS JANK AND WILL BE MADE CLEANER LATER
+        if (JSON.stringify(ability.selections) === JSON.stringify(["SELECT_SINGLE_PLAYER_TARGET"])) {
             if (!(Array.isArray(targetData) && targetData.length === 1)) return false
             const attemptedTarget = targetData[0]
-            if (!GameManager.isAlive(attemptedTarget)) return false
-            if (ability.hasTag('DESIGNATED') && GameManager.getDesignatedAttackerName() !== user.getUsername()) return false
-        }
-        // other logic for other selection list types
+            if (!instance.isAlive(attemptedTarget)) return false
+        } // other logic for other selection list types
         return true
     }
 
-    static verifySendWhisper(socketId, recipientUsername, contents) {
-        const phase = GameManager.getPhaseType()
-        if (phase !== 'DAY') return false
-        const sender = GameManager.getPlayerFromSocketId(socketId)
-        if (!sender) return false
-        if (!GameManager.isAlive(sender.getUsername())) return false
-        if (sender.getWhisperCount() < 1) return false
-        if (!GameManager.isAlive(recipientUsername)) return false
-        // probably should check the contents
+    static verifySendWhisper(socketId, contents, recipient, instance) {
+        const sender = instance.getPlayerFromSocketId(socketId)
+        if (instance.phaseType !== PhaseType.DAY ||
+            instance.gameStatus === GameStatus.ROLLOVER ||
+            !instance.isAlive(recipient) ||
+            !instance.isAlive(sender.username) ||
+            sender.whispers < 1) return false
         return true
     }
 
-    static verifyVote(socketId, voteTargetUsername) {
-        const phase = GameManager.getPhaseType()
-        if (phase !== 'DAY') return false
-        const sender = GameManager.getPlayerFromSocketId(socketId)
-        if (!sender) return false
-        if (!GameManager.isAlive(sender.getUsername())) return false
-        if (!GameManager.isAlive(voteTargetUsername)) return false
+    static verifyVote(socketId, target, instance) {
+        const voter = instance.getPlayerFromSocketId(socketId)
+        if (instance.phaseType !== PhaseType.DAY ||
+            instance.gameStatus === GameStatus.ROLLOVER ||
+            !instance.isAlive(target) ||
+            !instance.isAlive(voter.username)) return false
         return true
     }
 
-    static verifyDAVote(socketId, voteTargetUsername) {
-        const phase = GameManager.getPhaseType()
-        if (phase !== 'DAY') return false
-        const sender = GameManager.getPlayerFromSocketId(socketId)
-        if (!sender) return false
-        if (!GameManager.isAlive(sender.getUsername())) return false
-        if (sender.getAlignment() !== 'MAFIA') return false
-        if (!GameManager.isAlive(voteTargetUsername)) return false
-        const target = GameManager.getPlayer(voteTargetUsername)
-        if (target.getAlignment() !== 'MAFIA') return false
-        return true
-    }
-
-    static verifyChatRead(socketId, chatId) {
-        const player = GameManager.getPlayerFromSocketId(socketId)
-        const chat = GameManager.getSharedChat(chatId)
-        if (!chat.canRead(chatId)) return false
+    static verifyDAvote(socketId, target, instance) {
+        const voter = instance.getPlayerFromSocketId(socketId)
+        if (instance.phaseType !== PhaseType.DAY ||
+            instance.gameStatus === GameStatus.ROLLOVER ||
+            !instance.isAliveMafia(target) ||
+            !instance.isAliveMafia(voter.username)) return false
         return true
     }
 }

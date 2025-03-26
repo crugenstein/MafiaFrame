@@ -1,80 +1,59 @@
-const { AbilityManager } = require('../utils/AbilityManager')
-const { GameManager } = require('../utils/GameManager')
+const { MessageType } = require('../data/enums')
 const { IOVerifier } = require('./IOVerifier')
-const { IOManager } = require('./IOManager')
 
-const socketEvents = (socket) => {
+const registerEvents = (socket, instance) => {
 
-    socket.on('CLICK_JOIN_GAME', ({ username }) => {
-
-        if (!IOVerifier.verifyJoinGame(socket.id, username)) {
-            console.log('Player tried joining with invalid username')
-            //THROW CLIENTSIDE ERROR
+    socket.on('CLICK_JOIN_GAME', ({ username }) => { // FOR NOW YOU CANNOT JOIN IF THE GAME HAS STARTED. THIS SHOULD BE CHANGED
+        if (!IOVerifier.verifyJoinGame(socket.id, username, instance)) {
+            console.log(`Player (Socket ID: ${socket.id}, Username: ${username}) failed to join.`)
+            socket.emit('JOIN_ERROR', {errorMessage: "Unable to join game."})
             return
         }
 
-        const joinMessage = { senderName: '[SERVER]', contents: `${username} connected.`}
-        
-        if (gameStatus === 'LOBBY_WAITING') {
-            const lobbyChat = GameManager.getSharedChat('lobby')
-            const newPlayer = GameManager.instantiatePlayer(socket.id, username)
-            lobbyChat.addMessage(joinMessage)
-            lobbyChat.addRW(newPlayer.getUsername())
-        } // handle different logic if game has already started
+        instance.instantiatePlayer(socket.id, username)
+        instance.lobbyChat.addMessage(MessageType.SERVER, '[SERVER]', `${username} connected.`)
+        instance.lobbyChat.addRW(username)
 
-        io.emit('CLIENT_PLAYER_ENTER_LOBBY', { username })
+        const id = instance.lobbyChat.chatId
+        socket.emit('JOIN_SUCCESS', { lobbyChat: id })
     })
 
     socket.on('CLICK_SEND_MESSAGE', ({ contents, chatId }) => {
-        if (IOVerifier.verifyChatMessage(socket.id, contents, chatId)) {
-            const senderName = GameManager.getPlayerFromSocketId(socket.id).getUsername()
-            const message = {senderName, contents}
-            GameManager.getSharedChat(chatId).addMessage(message)
-        } else {
-            //throw an error
-        }
+        if (IOVerifier.verifyChatMessage(socket.id, contents, chatId, instance)) {
+            console.log('A message was successfully sent.')
+            const senderName = instance.getPlayerFromSocketId(socket.id).username
+            instance.getSharedChat(chatId).addMessage(MessageType.PLAYER_MESSAGE, senderName, contents)
+        } else {socket.emit('GENERIC_ERROR', {errorMessage: "Could not send message."})}
     })
 
-    socket.on('DISCONNECT', () => { // TODO!!!
-
+    socket.on('CLICK_SUBMIT_ABILITY', ({ abilityId, targetData }) => {
+        if (IOVerifier.verifySubmitAbility(socket.id, abilityId, targetData, instance)) {
+            const user = instance.getPlayerFromSocketId(socket.id)
+            const ability = user.getAbility(abilityId)
+            ability.use(targetData)
+        } else {socket.emit('GENERIC_ERROR', {errorMessage: "Could not use ability."})}
     })
 
-    socket.on('CLICK_SUBMIT_ABILITY', ({ abilityUUID, targetData }) => {
-        if (IOVerifier.verifySubmitAbility(socket.id, abilityUUID, targetData)) {
-            const user = GameManager.getPlayerFromSocketId(socket.id)
-            const ability = user.getAbility(abilityUUID)
-            AbilityManager.queueAbility(user.getUsername(), abilityUUID, targetData)
-            ability.spendUsage()
-        } else {
-            //throw an error
-        }
+    socket.on('CLICK_WHISPER_ACTION', ({ contents, recipient }) => {
+        if (IOVerifier.verifySendWhisper(socket.id, contents, recipient, instance)) {
+            const sender = instance.getPlayerFromSocketId(socket.id).username
+            instance.registerWhisper(sender, recipient, contents)
+        } else {socket.emit('GENERIC_ERROR', {errorMessage: "Could not send whisper."})}
     })
 
-    socket.on('CLICK_WHISPER_ACTION', ({ recipientUsername, contents }) => {
-        if (IOVerifier.verifySendWhisper(socket.id, recipientUsername, contents)) {
-            const senderUsername = GameManager.getPlayerFromSocketId(socket.id).getUsername()
-            GameManager.registerWhisper(senderUsername, recipientUsername, contents)
-        } else {
-            //throw an error
-        }
-
+    socket.on('CLICK_VOTE_ACTION', ({ target }) => {
+        if (IOVerifier.verifyVote(socket.id, target, instance)) {
+            const voter = instance.getPlayerFromSocketId(socket.id).username
+            instance.registerVote(voter, target)
+        } else {socket.emit('GENERIC_ERROR', {errorMessage: "Could not send vote."})}
     })
 
-    socket.on('CLICK_VOTE_ACTION', ( { voteTargetUsername }) => {
-        if (IOVerifier.verifyVote(socket.id, voteTargetUsername)) {
-            const voterUsername = GameManager.getPlayerFromSocketId(socket.id).getUsername()
-            GameManager.registerVote(voterUsername, voteTargetUsername)
-        } else {
-            //throw an error
-        }
-    })
-
-    socket.on('CLICK_DA_VOTE_ACTION') ( ({ voteTargetUsername }) => {
-        if (IOVerifier.verifyDAVote(socket.id, voteTargetUsername)) {
-            const voterUsername = GameManager.getPlayerFromSocketId(socket.id).getUsername()
-            GameManager.registerDAVote(voterUsername, voteTargetUsername)
-        } else {
-            //throw an error
-        }
+    socket.on('CLICK_DA_VOTE_ACTION', ({ target }) => {
+        if (IOVerifier.verifyDAvote(socket.id, target, instance)) {
+            const voter = instance.getPlayerFromSocketId(socket.id).username
+            instance.registerDAvote(voter, target)
+        } else {socket.emit('GENERIC_ERROR', {errorMessage: "Could not send DA vote."})}
     })
 }
+
+module.exports = { registerEvents }
