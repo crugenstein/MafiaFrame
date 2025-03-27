@@ -1,4 +1,4 @@
-const { GameStatus, PhaseType, PlayerStatus, PlayerAlignment, NotificationType } = require('../data/enums')
+const { GameStatus, PhaseType, PlayerStatus, PlayerAlignment, NotificationType, MessageType } = require('../data/enums')
 const { IOManager } = require('../io/IOManager')
 const { Player } = require('../objects/Player')
 const { SharedChat } = require('../objects/SharedChat')
@@ -13,6 +13,7 @@ class GameManager {
         GameManager.instance = this
 
         this._gameLoopInterval = null
+        this._hasAdmin = false
 
         this._phaseType = PhaseType.LOBBY
         this._gameStatus = GameStatus.LOBBY_WAITING
@@ -84,6 +85,7 @@ class GameManager {
         this._gameLoopInterval = setInterval(() => {
             if (this.gameStatus === GameStatus.LOBBY_COUNTDOWN || this.gameStatus === GameStatus.IN_PROGRESS) {
                 this.phaseTimeLeft = this.phaseTimeLeft - 1
+                if (this.gameStatus === GameStatus.LOBBY_COUNTDOWN && this.phaseTimeLeft > 0) {this.lobbyChat.addMessage(MessageType.SERVER, '[SERVER]', `Game starts in ${this.phaseTimeLeft} seconds...`)}
                 if (this.phaseTimeLeft <= 0) {
                     if (this.phaseType === PhaseType.DAY) {this.endDayPhase()}
                     else if (this.phaseType === PhaseType.NIGHT) {this.endNightPhase()}
@@ -108,10 +110,12 @@ class GameManager {
 
     /** Transitions from lobby to first day phase. */
     startGame() {
+        console.log('game start!!')
         this.gameStatus = GameStatus.ROLLOVER
         RoleDistributor.distribute(GameManager.getInstance())
 
-        this._playerNameMap.values().forEach((player) => {
+        this.allPlayers.forEach((playerName) => {
+            const player = this.getPlayer(playerName)
             player.status = PlayerStatus.ALIVE
         })
 
@@ -668,6 +672,19 @@ class GameManager {
     * @returns {number} - The number of alive Mafia players.
     */
     get aliveMafiaCount() {return this.aliveMafia.length}
+
+    /**
+    * @returns {boolean} - Whether or not there is an admin in the lobby.
+    */
+    get hasAdmin() {return this._hasAdmin}
+
+    /** Promotes a player to admin. 
+    * @param {Player} player - The player to promote.
+    */
+    promote(player) {
+        player.admin = true
+        this._hasAdmin = true
+    }
 
 }
 

@@ -10,12 +10,20 @@ const registerEvents = (socket, instance) => {
             return
         }
 
-        instance.instantiatePlayer(socket.id, username)
+        const player = instance.instantiatePlayer(socket.id, username)
         instance.lobbyChat.addMessage(MessageType.SERVER, '[SERVER]', `${username} connected.`)
         instance.lobbyChat.addRW(username)
 
+        if (!instance.hasAdmin) instance.promote(player)
+
         const id = instance.lobbyChat.chatId
-        socket.emit('JOIN_SUCCESS', { lobbyChat: id })
+        socket.emit('JOIN_SUCCESS', { lobbyChat: id, isAdminOnJoin: player.admin})
+    })
+
+    socket.on('CLICK_START_GAME', () => {
+        if (IOVerifier.verifyStartGame(socket.id, instance)) {
+            instance.startLobbyCountdown()
+        } else {socket.emit('GENERIC_ERROR', {errorMessage: "Could not start game."})}
     })
 
     socket.on('CLICK_SEND_MESSAGE', ({ contents, chatId }) => {

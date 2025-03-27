@@ -22,7 +22,7 @@ class PhaseAbility {
 
         const abilityData = abilityDictionary[key]
 
-        this._abilityKey = abilityKey
+        this._abilityKey = key
         this._name = abilityData.name
         this._description = abilityData.description
         this._effect = abilityData.effect

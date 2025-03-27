@@ -26,6 +26,7 @@ export const PhaseType = Object.freeze({
 export const useGameStore = create((set, get) => ({
     socket: null,
     username: null,
+    admin: false,
 
     sharedChats: new Map(),
     lobbyChat: null,
@@ -157,6 +158,10 @@ export const useGameStore = create((set, get) => ({
 
     setLobbyChat: (chatId) => {
         set({ lobbyChat: chatId })
+    },
+
+    setAdmin: (val) => {
+        set({ admin: val })
     }
 
 }))

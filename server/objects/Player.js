@@ -95,6 +95,12 @@ class Player {
     /** @returns {string} The player's username. */
     get username() {return this._username}
 
+    /**
+    * Sets whether or not a player is admin.
+    * @param {boolean} val - Whether to make this player an admin or not.
+    */
+    set admin(val) {this._admin = val}
+
     /** @returns {boolean} Whether or not this player has admin privileges. */
     get admin() {return this._admin}
 
