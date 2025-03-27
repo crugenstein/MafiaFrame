@@ -66,8 +66,8 @@ class Player {
         this._roleData = roleData
 
         roleData.abilities.forEach( ({abilityKey, abilityCount} ) => {
-            const newAbility = new PhaseAbility(this.username, abilityKey, abilityCount)
-            this._activeAbilities.set(newAbility.id, newAbility)
+            const newAbility = new PhaseAbility(this.username, abilityKey, abilityCount, this.gameInstance)
+            this._activeAbilities.set(newAbility.abilityId, newAbility)
         })
 
         this._baseDefense = roleData.defense

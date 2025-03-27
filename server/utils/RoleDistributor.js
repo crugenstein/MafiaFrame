@@ -62,9 +62,10 @@ class RoleDistributor { // this logic is temporary. This should be made more rob
                 if (!godfatherAssigned) {
                     assign(playerUsername, 'PLACEHOLDER_GODFATHER')
                     godfatherAssigned = true
+                } else {
+                    const roleKey = mafiaRoles[Math.floor(Math.random() * mafiaRoles.length)]
+                    assign(playerUsername, roleKey)
                 }
-                const roleKey = mafiaRoles[Math.floor(Math.random() * mafiaRoles.length)]
-                assign(playerUsername, roleKey)
             } else {
                 const roleKey = townRoles[Math.floor(Math.random() * townRoles.length)]
                 assign(playerUsername, roleKey)
