@@ -136,6 +136,7 @@ export const useGameStore = create((set, get) => ({
         socket.on('ABILITY_USAGE_UPDATE', ({abilityId, newCount}) => {
             set((state) => {
                 const newAbilities = [...state.abilities]
+                if (newCount === Infinity) {newCount = 'Infinity'}
                 newAbilities.find(ability => ability.id === abilityId).usages = newCount
                 return { abilities: newAbilities }
             })
