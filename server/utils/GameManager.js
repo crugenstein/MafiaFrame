@@ -88,7 +88,7 @@ class GameManager {
                 if (this.gameStatus === GameStatus.LOBBY_COUNTDOWN && this.phaseTimeLeft > 0) {this.lobbyChat.addMessage(MessageType.SERVER, '[SERVER]', `Game starts in ${this.phaseTimeLeft} seconds...`)}
                 if (this.phaseTimeLeft <= 0) {
                     if (this.phaseType === PhaseType.DAY) {this.endDayPhase()}
-                    else if (this.phaseType === PhaseType.NIGHT) {this.endNightPhase()}
+                    else if (this.phaseType === PhaseType.NIGHT) {this.endNightPhase(true)}
                     else if (this.phaseType === PhaseType.LOBBY) {this.startGame()}
                 }
             }

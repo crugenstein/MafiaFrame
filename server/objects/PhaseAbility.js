@@ -80,7 +80,7 @@ class PhaseAbility {
         const ownerPlayer = this._gameInstance.getPlayer(this.owner)
         ownerPlayer.abilitySlots = ownerPlayer.abilitySlots - 1
         this.usages = this.usages - 1
-        AbilityManager.queueAbility(this.ownerPlayer, this, targetData)
+        AbilityManager.queueAbility(ownerPlayer, this, targetData)
     }
 
     /** Fetches the Ability data that should be visible to its owner clientside.
@@ -91,7 +91,7 @@ class PhaseAbility {
             id: this.abilityId,
             name: this.name,
             description: this.description,
-            usages: this.usages,
+            usages: this.usages === Infinity ? 'Infinity' : this.usages,
             selections: this.selections,
             tags: [...this.tags]
         })
