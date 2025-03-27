@@ -15,6 +15,13 @@ export default function ChatBox({ chatId }) {
         setMessage('')
     }
 
+    console.log(chatId)
+    console.log(chat)
+
+    if (!chat) {
+        return <div>The chat Id was {chatId}.</div>
+    }
+
     return (
         <div className="container mt-3">
             <div className="card shadow-lg">
