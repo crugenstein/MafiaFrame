@@ -33,6 +33,7 @@ export const useGameStore = create((set, get) => ({
     allPlayerData: new Map(),
     playerList: [],
     abilities: [],
+    notifications: [],
 
     gamePhaseType: PhaseType.LOBBY,
     gameStatusType: GameStatus.LOBBY_WAITING,
@@ -130,6 +131,13 @@ export const useGameStore = create((set, get) => ({
                     newPlayerList.push({username, admin})
                 })
                 return { allPlayerData: newPlayerData, playerList: newPlayerList }
+            })
+        })
+
+        socket.on('RECEIVE_NOTIF', (notif) => {
+            set((state) => {
+                const newNotifs = [...state.notifications, notif]
+                return { notifications: newNotifs }
             })
         })
 

@@ -27,7 +27,7 @@ export default function AbilityWindow() {
 
     return (
         <div>
-            <div className="row">
+            <div >
                 {abilities.map((ability) => ( // is the 4x3 grid causing overflow? need to look at it.
                     <div className="col-md-4 mb-3" key={ability.id}>
                         <Card>

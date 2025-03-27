@@ -11,12 +11,15 @@ export default function Game() {
     const [showPopup, setShowPopup] = useState(false)
     const [selectedChatId, setSelectedChatId] = useState(null)
     const sharedChats = useGameStore(state => state.sharedChats)
+    const notifs = useGameStore(state => state.notifications)
 
     const renderComponent = () => {
         switch (activeComponent) {
             case 'chat': return <ChatBox chatId={selectedChatId}></ChatBox>
             case 'abilities': return <div><AbilityWindow></AbilityWindow></div>
-            case 'notifs': return <div>Notification Screen</div>
+            case 'notifs': return <div>{notifs.map((notif) => (
+                <label>{notif.notificationText}</label>
+            ))}</div>
             default: return <div>Shouldn't be here</div>
         }
     }
