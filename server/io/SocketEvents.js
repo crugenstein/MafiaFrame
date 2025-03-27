@@ -20,6 +20,12 @@ const registerEvents = (socket, instance) => {
         socket.emit('JOIN_SUCCESS', { lobbyChat: id, isAdminOnJoin: player.admin})
     })
 
+    socket.on('CLICK_START_GAME', () => {
+        if (IOVerifier.verifyStartGame(socket.id, instance)) {
+            instance.startLobbyCountdown()
+        } else {socket.emit('GENERIC_ERROR', {errorMessage: "Could not start game."})}
+    })
+
     socket.on('CLICK_SEND_MESSAGE', ({ contents, chatId }) => {
         if (IOVerifier.verifyChatMessage(socket.id, contents, chatId, instance)) {
             console.log('A message was successfully sent.')

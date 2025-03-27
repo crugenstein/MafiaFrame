@@ -11,9 +11,12 @@ class RoleDistributor { // this logic is temporary. This should be made more rob
         let townRoles = []
 
         const shuffle = (array) => {
+            console.log(array)
             for (let i = array.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1))
-                [array[i], array[j]] = [array[j], array[i]]
+                let j = Math.floor(Math.random() * (i + 1))
+                let temp = array[i]
+                array[i] = array[j]
+                array[j] = temp
             }
             return array
         }
@@ -49,7 +52,7 @@ class RoleDistributor { // this logic is temporary. This should be made more rob
             }
         })
 
-        const playerList = shuffle(instance.getAllUsernames())
+        const playerList = shuffle(instance.allPlayers)
         const mafiaCount = Math.floor(playerList.length * mafiaProportion)
         let mafiasAssigned = 0
         let godfatherAssigned = false

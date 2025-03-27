@@ -9,6 +9,12 @@ class IOVerifier {
         return true
     }
 
+    static verifyStartGame(socketId, instance) {
+        if (instance.gameStatus !== GameStatus.LOBBY_WAITING ||
+            !instance.getPlayerFromSocketId(socketId).admin) return false
+        return true
+    }
+
     static verifyChatMessage(socketId, message, chatId, instance) {
         const attemptedChat = instance.getSharedChat(chatId)
         const senderName = instance.getPlayerFromSocketId(socketId).username

@@ -17,8 +17,8 @@ class SharedChat {
         this._chatId = uuidv4()
         this._gameInstance = gameInstance
 
+        writers.forEach((writerName) => {this.addRW(writerName)})
         readers.forEach((readerName) => {this.addReader(readerName)})
-        writers.forEach((writerName) => {this.addWriter(writerName)})
 
         this._messages = []
     }
