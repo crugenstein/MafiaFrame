@@ -110,8 +110,8 @@ class Player {
     */
     set status(newStatus) {
         if (newStatus !== PlayerStatus.ALIVE) {
-            this._chatsCanWrite.forEach((chat) => {
-                chat.revokeWrite(this.username)
+            this._writeableChats.forEach((chat) => {
+                this._gameInstance.getSharedChat(chat).revokeWrite(this._username)
             })
         }
 
