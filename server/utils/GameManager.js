@@ -120,6 +120,8 @@ class GameManager {
         })
 
         const mafia = this.aliveMafia
+        console.log(`The alives are ${this.alivePlayers}`)
+        console.log(`The mafia is ${mafia}`)
         this._mafiaChat = this.createSharedChat('Mafia Chat', mafia, mafia)
         
         this.endNightPhase(false)
@@ -175,6 +177,7 @@ class GameManager {
 
         this.allPlayers.forEach((playerName) => {
             const player = this.getPlayer(playerName)
+            console.log(player)
             player.clientGameStateUpdate()
         })
 
@@ -213,6 +216,7 @@ class GameManager {
     * @param {string} endState - (TEMP) the state that caused the game to end.
     */
     endGame(endState) {
+        console.log(endState)
         this.gameStatus = GameStatus.GAME_FINISHED
         this.stopGameLoop()
         IOManager.globalEmit('GAME_END', { endState })
@@ -530,7 +534,7 @@ class GameManager {
     * Returns an array of alive player usernames.
     * @returns {Array<string>} - An array of alive player usernames.
     */
-    get alivePlayers() {return [...this._playerNameMap.keys()].filter(player => {this.getPlayer(player).status === PlayerStatus.ALIVE})}
+    get alivePlayers() {return [...this._playerNameMap.keys()].filter(player => (this.getPlayer(player).status === PlayerStatus.ALIVE))}
 
     /**
     * Returns an array of alive Mafia player usernames.
