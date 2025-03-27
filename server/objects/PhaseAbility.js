@@ -91,7 +91,7 @@ class PhaseAbility {
             id: this.abilityId,
             name: this.name,
             description: this.description,
-            usages: this.usages,
+            usages: this.usages === Infinity ? 'Infinity' : this.usages,
             selections: this.selections,
             tags: [...this.tags]
         })

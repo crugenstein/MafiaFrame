@@ -2,11 +2,12 @@ import React, { useState } from 'react'
 import "bootstrap/dist/css/bootstrap.min.css"
 import { Container, ListGroup, Navbar, Button, Modal } from "react-bootstrap"
 import { useGameStore } from '../store/useGameStore'
+import AbilityWindow from './AbilityWindow'
 import ChatBox from './ChatBox'
 
 
 export default function Game() {
-    const [activeComponent, setActiveComponent] = useState('abilities')
+    const [activeComponent, setActiveComponent] = useState('notifs')
     const [showPopup, setShowPopup] = useState(false)
     const [selectedChatId, setSelectedChatId] = useState(null)
     const sharedChats = useGameStore(state => state.sharedChats)
@@ -14,7 +15,7 @@ export default function Game() {
     const renderComponent = () => {
         switch (activeComponent) {
             case 'chat': return <ChatBox chatId={selectedChatId}></ChatBox>
-            case 'abilities': return <div>Ability Screen</div>
+            case 'abilities': return <div><AbilityWindow></AbilityWindow></div>
             case 'notifs': return <div>Notification Screen</div>
             default: return <div>Shouldn't be here</div>
         }

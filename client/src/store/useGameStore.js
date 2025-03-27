@@ -32,6 +32,7 @@ export const useGameStore = create((set, get) => ({
     lobbyChat: null,
     allPlayerData: new Map(),
     playerList: [],
+    abilities: [],
 
     gamePhaseType: PhaseType.LOBBY,
     gameStatusType: GameStatus.LOBBY_WAITING,
@@ -129,6 +130,21 @@ export const useGameStore = create((set, get) => ({
                     newPlayerList.push({username, admin})
                 })
                 return { allPlayerData: newPlayerData, playerList: newPlayerList }
+            })
+        })
+
+        socket.on('ABILITY_USAGE_UPDATE', ({abilityId, newCount}) => {
+            set((state) => {
+                const newAbilities = [...state.abilities]
+                newAbilities.find(ability => ability.id === abilityId).usages = newCount
+                return { abilities: newAbilities }
+            })
+        })
+
+        socket.on('CLIENT_GAME_STATE_UPDATE', ({ abilityData, chatData, alivePlayerList }) => {
+            set((state) => {
+                const newAbilityData = abilityData
+                return { abilities: newAbilityData }
             })
         })
 
