@@ -457,6 +457,7 @@ class GameManager {
     registerWhisper(senderName, recipientName, contents) {
         const sender = this.getPlayer(senderName)
         const recipient = this.getPlayer(recipientName)
+        console.log(`${senderName} is trying to send ${contents} to ${recipientName}.`)
 
         if (sender.whispers < 1) return
         sender.whispers = sender.whispers - 1

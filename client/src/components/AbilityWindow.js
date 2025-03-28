@@ -2,15 +2,19 @@ import { useState } from 'react'
 import { useGameStore, PhaseType, AbilityTag } from "../store/useGameStore";
 import { Card, Button, Badge } from 'react-bootstrap';
 import TargetSelectionModal from './TargetSelectModal';
+import WhisperTextModal from './WhisperTextModal';
 
 export default function AbilityWindow() {
     const abilities = useGameStore(state => state.abilities)
     const emit = useGameStore(state => state.emit)
     const playerList = useGameStore(state => state.playerList)
     const phaseType = useGameStore(state => state.gamePhaseType)
+    const whisperCount = useGameStore(state => state.whispers)
     const [showModal, setShowModal] = useState(false)
     const [selectedAbility, setSelectedAbility] = useState(null)
     const [selectedTarget, setSelectedTarget] = useState(null) // this is temporary because we are only picking one
+    const [whisperContents, setWhisperContents] = useState('') // temporary?
+    const [showWhisperModal, setShowWhisperModal] = useState(false)
 
     console.log(playerList)
 
@@ -21,9 +25,19 @@ export default function AbilityWindow() {
 
     const handleConfirm = () => {
         if (selectedAbility && selectedTarget) {
-            emit('CLICK_SUBMIT_ABILITY', {abilityId: selectedAbility.id, targetData: [selectedTarget]}) // this targetData will need to be updated later because we love dynamic things
-            setShowModal(false)
+            if (selectedAbility === 'WHISPER') {
+                setShowModal(false)
+                setShowWhisperModal(true)
+            } else {
+                emit('CLICK_SUBMIT_ABILITY', {abilityId: selectedAbility.id, targetData: [selectedTarget]}) // this targetData will need to be updated later because we love dynamic things
+                setShowModal(false)
+            }
         }
+    }
+
+    const handleWhisperConfirm = () => {
+        emit('CLICK_WHISPER_ACTION', {contents: whisperContents, recipient: selectedTarget})
+        setShowWhisperModal(false)
     }
 
     return (
@@ -52,6 +66,20 @@ export default function AbilityWindow() {
                     </div>
                 ))}
             </div>
+            <div className="col-md-4 mb-3" >
+                <Card>
+                    <Card.Body>
+                        <Card.Title>Send Whisper</Card.Title>
+                        <Card.Subtitle className="mb-2 text-muted">Select another player. You will send them a private message.</Card.Subtitle>
+                        <Card.Text>Whispers Left: {whisperCount}</Card.Text>
+                        <Button
+                            variant="primary"
+                            onClick={() => handleUseAbility('WHISPER')}>
+                                Whisper
+                        </Button>
+                    </Card.Body>
+                </Card>
+            </div>
             <TargetSelectionModal 
                 show={showModal} 
                 onHide={() => setShowModal(false)} 
@@ -60,6 +88,13 @@ export default function AbilityWindow() {
                 setSelectedTarget={setSelectedTarget} 
                 onConfirm={handleConfirm}>
             </TargetSelectionModal>
+            <WhisperTextModal 
+                show={showWhisperModal} 
+                onHide={() => setShowWhisperModal(false)}
+                whisperContents={whisperContents}
+                setWhisperContents={setWhisperContents}
+                onConfirm={handleWhisperConfirm}>
+            </WhisperTextModal>
         </div>
     )
 }
