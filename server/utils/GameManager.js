@@ -19,7 +19,7 @@ class GameManager {
         this._gameStatus = GameStatus.LOBBY_WAITING
 
         this._phaseNumber = 0
-        this._phaseTimeLeft = 15
+        this._phaseTimeLeft = 2 // CHANGE BACK FOR DEBUG
         this._phaseLength = 150
 
         /**
