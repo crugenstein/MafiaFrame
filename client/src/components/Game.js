@@ -30,9 +30,9 @@ export default function Game() {
             <main className="flex-grow-1">{renderComponent()}</main>
             <Navbar fixed="bottom" bg="dark" variant="dark">
                 <Container className="justify-content-center">
-                    <Button onClick={() => setShowPopup(true)}>Chats</Button>
-                    <Button onClick={() => setActiveComponent('abilities')}>Abilities</Button>
-                    <Button onClick={() => setActiveComponent('notifs')}>Notifications</Button>
+                    <Button className='mx-2' onClick={() => setShowPopup(true)}>Chats</Button>
+                    <Button className='mx-2' onClick={() => setActiveComponent('abilities')}>Abilities</Button>
+                    <Button className='mx-2' onClick={() => setActiveComponent('notifs')}>Notifications</Button>
                     <label className='ms-auto' style={{ color: 'white', opacity: 1, visibility: 'visible' }}>{role === null ? 'Generating role...' : `Your role is ${role}.`}</label>
                 </Container>
             </Navbar>
