@@ -231,7 +231,7 @@ class Player {
         })
 
         const alivePlayerList = this.gameInstance.alivePlayers
-        const data = {abilityData, chatData, alivePlayerList}
+        const data = {abilityData, chatData, alivePlayerList, roleName: this.roleName}
 
         IOManager.emitToPlayer(this, 'CLIENT_GAME_STATE_UPDATE', data)
     }

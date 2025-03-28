@@ -7,11 +7,12 @@ import ChatBox from './ChatBox'
 
 
 export default function Game() {
-    const [activeComponent, setActiveComponent] = useState('notifs')
+    const [activeComponent, setActiveComponent] = useState('abilities')
     const [showPopup, setShowPopup] = useState(false)
     const [selectedChatId, setSelectedChatId] = useState(null)
     const sharedChats = useGameStore(state => state.sharedChats)
     const notifs = useGameStore(state => state.notifications)
+    const role = useGameStore(state => state.role)
 
     const renderComponent = () => {
         switch (activeComponent) {
@@ -32,6 +33,7 @@ export default function Game() {
                     <Button onClick={() => setShowPopup(true)}>Chats</Button>
                     <Button onClick={() => setActiveComponent('abilities')}>Abilities</Button>
                     <Button onClick={() => setActiveComponent('notifs')}>Notifications</Button>
+                    <label className='ms-auto' style={{ color: 'white', opacity: 1, visibility: 'visible' }}>{role === null ? 'Generating role...' : `Your role is ${role}.`}</label>
                 </Container>
             </Navbar>
 

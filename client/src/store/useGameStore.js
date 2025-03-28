@@ -27,6 +27,7 @@ export const useGameStore = create((set, get) => ({
     socket: null,
     username: null,
     admin: false,
+    role: null,
 
     sharedChats: new Map(),
     lobbyChat: null,
@@ -150,10 +151,10 @@ export const useGameStore = create((set, get) => ({
             })
         })
 
-        socket.on('CLIENT_GAME_STATE_UPDATE', ({ abilityData, chatData, alivePlayerList }) => {
+        socket.on('CLIENT_GAME_STATE_UPDATE', ({ abilityData, chatData, alivePlayerList, roleName }) => {
             set((state) => {
                 const newAbilityData = abilityData
-                return { abilities: newAbilityData }
+                return { abilities: newAbilityData, role: roleName }
             })
         })
 
