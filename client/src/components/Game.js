@@ -49,17 +49,17 @@ export default function Game() {
                 <Modal.Body>
                     <ListGroup>
                         {Array.from(sharedChats).map(([chatId, chat]) => (
-                            <ListGroup.Item
-                            key={chatId}
-                            action
-                            onClick={() => {
-                                setSelectedChatId(chatId)
-                                setActiveComponent('chat')
-                                setShowPopup(false)
-                            }}
-                            >
-                                {chat.name}
-                            </ListGroup.Item>
+                            chat.canRead && (<ListGroup.Item
+                                key={chatId}
+                                action
+                                onClick={() => {
+                                    setSelectedChatId(chatId)
+                                    setActiveComponent('chat')
+                                    setShowPopup(false)
+                                }}
+                                >
+                                    {chat.name}
+                                </ListGroup.Item>)
                         ))}
                     </ListGroup>
                 </Modal.Body>

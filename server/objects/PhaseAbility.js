@@ -61,6 +61,7 @@ class PhaseAbility {
 
     set usages(count) {
         this._usages = count
+        if (count === Infinity) {count = 'Infinity'} // this is for the frontend
         IOManager.emitToPlayer(this._gameInstance.getPlayer(this.owner), 'ABILITY_USAGE_UPDATE', {abilityId: this._abilityId, newCount: count})
     }
 
@@ -91,7 +92,7 @@ class PhaseAbility {
             id: this.abilityId,
             name: this.name,
             description: this.description,
-            usages: this.usages === Infinity ? 'Infinity' : this.usages,
+            usages: this.usages === Infinity ? 'Infinity' : this.usages, // for the frontend we have to turn Infinity into text
             selections: this.selections,
             tags: [...this.tags]
         })
