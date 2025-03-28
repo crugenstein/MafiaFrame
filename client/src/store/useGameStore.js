@@ -42,6 +42,7 @@ export const useGameStore = create((set, get) => ({
     playerList: [],
     abilities: [],
     notifications: [],
+    whispers: 3,
 
     gamePhaseType: PhaseType.LOBBY,
     gameStatusType: GameStatus.LOBBY_WAITING,
@@ -156,6 +157,13 @@ export const useGameStore = create((set, get) => ({
                 newAbilities.find(ability => ability.id === abilityId).usages = newCount
                 return { abilities: newAbilities }
             })
+        })
+
+        socket.on('WHISPER_COUNT_UPDATE', ({ whisperCount }) => {
+            set((state) => {
+                return { whispers: whisperCount }
+            })
+
         })
 
         socket.on('CLIENT_GAME_STATE_UPDATE', ({ abilityData, chatData, alivePlayerList, roleName }) => {

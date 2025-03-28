@@ -11,7 +11,6 @@ export default function Lobby() {
     const socket = useGameStore(state => state.socket)
     const admin = useGameStore(state => state.admin)
     const phaseType = useGameStore(state => state.gamePhaseType)
-    const phaseTimeLeft = useGameStore(state => state.gamePhaseTimeLeft)
     const lobbyChatId = useGameStore(state => state.lobbyChat)
     const playerList = useGameStore(state => state.playerList)
     
@@ -39,7 +38,7 @@ export default function Lobby() {
         ( phaseType === PhaseType.DAY || phaseType === PhaseType.NIGHT ? <Game /> :
         <div>
         <Container className="align-items-center d-flex" style={{height:'100vh'}}>
-            <h3>{phaseType} and {phaseTimeLeft} Users: {playerDisplay.join(', ')}</h3>
+            <h3>Users: {playerDisplay.join(', ')}</h3>
             <ChatBox chatId={lobbyChatId}/>
         </Container>
         {admin && <Navbar fixed="bottom" bg="dark" variant="dark">
