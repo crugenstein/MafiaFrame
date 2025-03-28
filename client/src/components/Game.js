@@ -29,8 +29,8 @@ export default function Game() {
 
     return (
         <div className="d-flex flex-column min-vh-100">
-            {end ? <Alert variant={end === 'TOWN_VICTORY' ? 'success' : 'danger'}>
-            {end === 'TOWN_VICTORY' ? 'The town won! Hooray!' : (end === 'MAFIA_VICTORY' ? 'The Mafia won!' : 'Erm... draw...')}
+            {end ? <Alert variant={end === 'TOWN VICTORY' ? 'success' : 'danger'}>
+            {end === 'TOWN VICTORY' ? 'The town won! Hooray!' : (end === 'MAFIA VICTORY' ? 'The Mafia won!' : 'Erm... draw...')}
             </Alert> : null}
             <main className="flex-grow-1">{renderComponent()}</main>
             <Navbar fixed="bottom" bg="dark" variant="dark">

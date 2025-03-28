@@ -133,8 +133,6 @@ class GameManager {
 
         this.phaseType = PhaseType.NIGHT
 
-        if (this.checkWinConditions()) return
-
         const prevDP = this.getDayPhaseChat()
         prevDP.writeLock()
 
@@ -147,7 +145,8 @@ class GameManager {
         })
 
         prevDP.addMessage(MessageType.SERVER, '[SERVER]', `The Day Phase has ended. Night Phase ${this.phaseNumber} has begun!`)
-
+        
+        if (this.checkWinConditions()) return
         this.gameStatus = GameStatus.IN_PROGRESS
         this.phaseTimeLeft = 150
     }
@@ -161,12 +160,11 @@ class GameManager {
         if (doAbilityQueue) {AbilityManager.processPhaseEnd()}
 
         this.phaseType = PhaseType.DAY
-        if (this.checkWinConditions()) return
         this.phaseNumber = this.phaseNumber + 1
-
+        
         if (this.phaseNumber === 1) {this._votesNeededToAxe = Math.ceil(0.75 * this.alivePlayerCount)}
         else {this._votesNeededToAxe = Math.ceil(0.5 * this.alivePlayerCount)}
-
+        
         const DP = this.createSharedChat(`Day Phase ${this.phaseNumber}`, this.allPlayers, this.alivePlayers)
         this._dayPhaseChats.set(this.phaseNumber, DP)
 
@@ -187,6 +185,7 @@ class GameManager {
         DP.addMessage(MessageType.SERVER, '[SERVER]', `The Day Phase ends in ${this._phaseLength} seconds. Good luck!`)
 
         this._diedLastNight.clear()
+        if (this.checkWinConditions()) return
 
         this.gameStatus = GameStatus.IN_PROGRESS
         this.phaseTimeLeft = 150
