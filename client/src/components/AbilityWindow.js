@@ -47,7 +47,7 @@ export default function AbilityWindow() {
                     <div className="col-md-4 mb-3" key={ability.id}>
                         <Card>
                             <Card.Body>
-                                <Badge bg="primary" className="position-absolute top-0 end-0 m-2" style={{ fontSize: '1.2rem' }}>
+                                <Badge bg="secondary" className="position-absolute top-0 end-0 m-2" style={{ fontSize: '1.2rem' }}>
                                     {ability.tags.includes(AbilityTag.DAY) ? '☀️' : '🌙'}</Badge>
                                 <Card.Title>{ability.name}</Card.Title>
                                 <Card.Subtitle className="mb-2 text-muted">{ability.description}</Card.Subtitle>
