@@ -66,8 +66,8 @@ class Player {
         this._roleData = roleData
 
         roleData.abilities.forEach( ({abilityKey, abilityCount} ) => {
-            const newAbility = new PhaseAbility(this.username, abilityKey, abilityCount)
-            this._activeAbilities.set(newAbility.id, newAbility)
+            const newAbility = new PhaseAbility(this.username, abilityKey, abilityCount, this.gameInstance)
+            this._activeAbilities.set(newAbility.abilityId, newAbility)
         })
 
         this._baseDefense = roleData.defense
@@ -95,6 +95,12 @@ class Player {
     /** @returns {string} The player's username. */
     get username() {return this._username}
 
+    /**
+    * Sets whether or not a player is admin.
+    * @param {boolean} val - Whether to make this player an admin or not.
+    */
+    set admin(val) {this._admin = val}
+
     /** @returns {boolean} Whether or not this player has admin privileges. */
     get admin() {return this._admin}
 
@@ -104,8 +110,8 @@ class Player {
     */
     set status(newStatus) {
         if (newStatus !== PlayerStatus.ALIVE) {
-            this._chatsCanWrite.forEach((chat) => {
-                chat.revokeWrite(this.username)
+            this._writeableChats.forEach((chat) => {
+                this._gameInstance.getSharedChat(chat).revokeWrite(this._username)
             })
         }
 
@@ -225,7 +231,7 @@ class Player {
         })
 
         const alivePlayerList = this.gameInstance.alivePlayers
-        const data = {abilityData, chatData, alivePlayerList}
+        const data = {abilityData, chatData, alivePlayerList, roleName: this.roleName}
 
         IOManager.emitToPlayer(this, 'CLIENT_GAME_STATE_UPDATE', data)
     }

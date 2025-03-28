@@ -23,14 +23,25 @@ export const PhaseType = Object.freeze({
     NIGHT: 2
 })
 
+export const AbilityTag = Object.freeze({
+    DAY: 0, // use only during day
+    NIGHT: 1, // use only during night
+    DESIGNATED: 2, // need DA status to use it
+    ASTRAL: 3 // does not visit
+})
+
 export const useGameStore = create((set, get) => ({
     socket: null,
     username: null,
+    admin: false,
+    role: null,
 
     sharedChats: new Map(),
     lobbyChat: null,
     allPlayerData: new Map(),
     playerList: [],
+    abilities: [],
+    notifications: [],
 
     gamePhaseType: PhaseType.LOBBY,
     gameStatusType: GameStatus.LOBBY_WAITING,
@@ -131,6 +142,29 @@ export const useGameStore = create((set, get) => ({
             })
         })
 
+        socket.on('RECEIVE_NOTIF', (notif) => {
+            set((state) => {
+                const newNotifs = [...state.notifications, notif]
+                return { notifications: newNotifs }
+            })
+        })
+
+        socket.on('ABILITY_USAGE_UPDATE', ({abilityId, newCount}) => {
+            set((state) => {
+                const newAbilities = [...state.abilities]
+                if (newCount === Infinity) {newCount = 'Infinity'}
+                newAbilities.find(ability => ability.id === abilityId).usages = newCount
+                return { abilities: newAbilities }
+            })
+        })
+
+        socket.on('CLIENT_GAME_STATE_UPDATE', ({ abilityData, chatData, alivePlayerList, roleName }) => {
+            set((state) => {
+                const newAbilityData = abilityData
+                return { abilities: newAbilityData, role: roleName }
+            })
+        })
+
     },
 
     emit: (event, payload) => {
@@ -157,6 +191,10 @@ export const useGameStore = create((set, get) => ({
 
     setLobbyChat: (chatId) => {
         set({ lobbyChat: chatId })
+    },
+
+    setAdmin: (val) => {
+        set({ admin: val })
     }
 
 }))

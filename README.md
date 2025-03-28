@@ -1,2 +1,5 @@
-# CS-Senior-Project
-CS Senior Project Chris &amp; Lorraine
+# MafiaFrame
+Open source framework for complex browser-based Mafia games in JavaScript.
+
+Chris Rugenstein
+Lorraine Nix
