@@ -14,9 +14,9 @@ export default function PhaseTimer() {
     const timerText = 
         (day > 0 ? day + ' days, ' : '') + (hrs <= 0 ? min + ':' + sec + ' min' : hrs + ':' + min + ' hrs')
     const phaseText = 
-        phaseType == PhaseType.DAY ? '☼' + phaseNumber :
-        phaseType == PhaseType.NIGHT ? '☾' + phaseNumber : 
-        phaseType == PhaseType.LOBBY ? '⧖' : 
+        phaseType === PhaseType.DAY ? '☼' + phaseNumber :
+        phaseType === PhaseType.NIGHT ? '☾' + phaseNumber : 
+        phaseType === PhaseType.LOBBY ? '⧖' : 
         '?'
 
     return (
