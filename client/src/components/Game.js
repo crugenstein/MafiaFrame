@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import "bootstrap/dist/css/bootstrap.min.css"
-import { Container, ListGroup, Navbar, Button, Modal } from "react-bootstrap"
+import { Container, ListGroup, Navbar, Button, Modal, Alert } from "react-bootstrap"
 import { useGameStore } from '../store/useGameStore'
 import NotificationPanel from './NotificationPanel'
 import AbilityWindow from './AbilityWindow'
@@ -14,6 +14,7 @@ export default function Game() {
     const [selectedChatId, setSelectedChatId] = useState(null)
     const sharedChats = useGameStore(state => state.sharedChats)
     const role = useGameStore(state => state.role)
+    const end = useGameStore(state => state.victory)
 
     const renderComponent = () => {
         switch (activeComponent) {
@@ -26,6 +27,9 @@ export default function Game() {
 
     return (
         <div className="d-flex flex-column min-vh-100">
+            {end ? <Alert variant={end === 'TOWN_VICTORY' ? 'success' : 'danger'}>
+            {end === 'TOWN_VICTORY' ? 'The town won! Hooray!' : (end === 'MAFIA_VICTORY' ? 'The Mafia won!' : 'Erm... draw...')}
+            </Alert> : null}
             <main className="flex-grow-1">{renderComponent()}</main>
             <Navbar fixed="bottom" bg="dark" variant="dark">
                 <Container className="justify-content-center">
@@ -47,17 +51,17 @@ export default function Game() {
                 <Modal.Body>
                     <ListGroup>
                         {Array.from(sharedChats).map(([chatId, chat]) => (
-                            <ListGroup.Item
-                            key={chatId}
-                            action
-                            onClick={() => {
-                                setSelectedChatId(chatId)
-                                setActiveComponent('chat')
-                                setShowPopup(false)
-                            }}
-                            >
-                                {chat.name}
-                            </ListGroup.Item>
+                            chat.canRead && (<ListGroup.Item
+                                key={chatId}
+                                action
+                                onClick={() => {
+                                    setSelectedChatId(chatId)
+                                    setActiveComponent('chat')
+                                    setShowPopup(false)
+                                }}
+                                >
+                                    {chat.name}
+                                </ListGroup.Item>)
                         ))}
                     </ListGroup>
                 </Modal.Body>

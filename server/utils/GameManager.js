@@ -80,7 +80,7 @@ class GameManager {
     /** Run this when the server starts. Starts the "internal clock" that pulses every second. */
     startGameLoop() {
         if (this._gameLoopInterval) return
-        this._lobbyChat = this.createSharedChat('lobby')
+        this._lobbyChat = this.createSharedChat('Game Lobby')
 
         this._gameLoopInterval = setInterval(() => {
             if (this.gameStatus === GameStatus.LOBBY_COUNTDOWN || this.gameStatus === GameStatus.IN_PROGRESS) {
@@ -117,11 +117,10 @@ class GameManager {
         this.allPlayers.forEach((playerName) => {
             const player = this.getPlayer(playerName)
             player.status = PlayerStatus.ALIVE
+            this.lobbyChat.revokeRW(playerName)
         })
 
         const mafia = this.aliveMafia
-        console.log(`The alives are ${this.alivePlayers}`)
-        console.log(`The mafia is ${mafia}`)
         this._mafiaChat = this.createSharedChat('Mafia Chat', mafia, mafia)
         
         this.endNightPhase(false)
@@ -132,9 +131,9 @@ class GameManager {
         this.gameStatus = GameStatus.ROLLOVER
         AbilityManager.processPhaseEnd()
 
-        if (this.checkWinConditions()) return
-
         this.phaseType = PhaseType.NIGHT
+
+        if (this.checkWinConditions()) return
 
         const prevDP = this.getDayPhaseChat()
         prevDP.writeLock()
@@ -161,9 +160,8 @@ class GameManager {
         this.gameStatus = GameStatus.ROLLOVER
         if (doAbilityQueue) {AbilityManager.processPhaseEnd()}
 
-        if (this.checkWinConditions()) return
-
         this.phaseType = PhaseType.DAY
+        if (this.checkWinConditions()) return
         this.phaseNumber = this.phaseNumber + 1
 
         if (this.phaseNumber === 1) {this._votesNeededToAxe = Math.ceil(0.75 * this.alivePlayerCount)}
@@ -177,7 +175,6 @@ class GameManager {
 
         this.allPlayers.forEach((playerName) => {
             const player = this.getPlayer(playerName)
-            console.log(player)
             player.clientGameStateUpdate()
         })
 
@@ -216,7 +213,6 @@ class GameManager {
     * @param {string} endState - (TEMP) the state that caused the game to end.
     */
     endGame(endState) {
-        console.log(endState)
         this.gameStatus = GameStatus.GAME_FINISHED
         this.stopGameLoop()
         IOManager.globalEmit('GAME_END', { endState })
