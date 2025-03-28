@@ -18,8 +18,8 @@ export default function Game() {
         switch (activeComponent) {
             case 'chat': return <ChatBox chatId={selectedChatId}></ChatBox>
             case 'abilities': return <div><AbilityWindow></AbilityWindow></div>
-            case 'notifs': return <div>{notifs.map((notif) => (
-                <label>{notif.notificationText}</label>
+            case 'notifs': return <div>{notifs.map((notif, index) => (
+                <div key={index}>{notif.notificationText}</div>
             ))}</div>
             default: return <div>Shouldn't be here</div>
         }
