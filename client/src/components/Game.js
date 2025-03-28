@@ -4,6 +4,7 @@ import { Container, ListGroup, Navbar, Button, Modal } from "react-bootstrap"
 import { useGameStore } from '../store/useGameStore'
 import AbilityWindow from './AbilityWindow'
 import ChatBox from './ChatBox'
+import PhaseTimer from './PhaseTimer'
 
 
 export default function Game() {
@@ -33,7 +34,9 @@ export default function Game() {
                     <Button className='mx-2' onClick={() => setShowPopup(true)}>Chats</Button>
                     <Button className='mx-2' onClick={() => setActiveComponent('abilities')}>Abilities</Button>
                     <Button className='mx-2' onClick={() => setActiveComponent('notifs')}>Notifications</Button>
+                    
                     <label className='ms-auto' style={{ color: 'white', opacity: 1, visibility: 'visible' }}>{role === null ? 'Generating role...' : `Your role is ${role}.`}</label>
+                    <div className='ms-auto' style={{ color: 'white', opacity: 1, visibility: 'visible' }}> <PhaseTimer/> </div>
                 </Container>
             </Navbar>
 
