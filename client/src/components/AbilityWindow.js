@@ -1,12 +1,13 @@
 import { useState } from 'react'
-import { useGameStore } from "../store/useGameStore";
-import { Card, Button } from 'react-bootstrap';
+import { useGameStore, PhaseType, AbilityTag } from "../store/useGameStore";
+import { Card, Button, Badge } from 'react-bootstrap';
 import TargetSelectionModal from './TargetSelectModal';
 
 export default function AbilityWindow() {
     const abilities = useGameStore(state => state.abilities)
     const emit = useGameStore(state => state.emit)
     const playerList = useGameStore(state => state.playerList)
+    const phaseType = useGameStore(state => state.gamePhaseType)
     const [showModal, setShowModal] = useState(false)
     const [selectedAbility, setSelectedAbility] = useState(null)
     const [selectedTarget, setSelectedTarget] = useState(null) // this is temporary because we are only picking one
@@ -32,12 +33,17 @@ export default function AbilityWindow() {
                     <div className="col-md-4 mb-3" key={ability.id}>
                         <Card>
                             <Card.Body>
+                                <Badge bg="primary" className="position-absolute top-0 end-0 m-2" style={{ fontSize: '1.2rem' }}>
+                                    {ability.tags.includes(AbilityTag.DAY) ? '☀️' : '🌙'}</Badge>
                                 <Card.Title>{ability.name}</Card.Title>
                                 <Card.Subtitle className="mb-2 text-muted">{ability.description}</Card.Subtitle>
                                 <Card.Text>Usages: {ability.usages === 'Infinity' ? '∞' : ability.usages}</Card.Text>
                                 <Button
                                     variant="primary"
                                     onClick={() => handleUseAbility(ability)}
+                                    disabled={(phaseType === PhaseType.DAY && !ability.tags.includes(AbilityTag.DAY)) ||  
+                                            (phaseType === PhaseType.NIGHT && !ability.tags.includes(AbilityTag.NIGHT))
+                                    }
                                 >
                                     Use
                                 </Button>

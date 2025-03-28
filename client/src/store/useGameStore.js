@@ -23,6 +23,13 @@ export const PhaseType = Object.freeze({
     NIGHT: 2
 })
 
+export const AbilityTag = Object.freeze({
+    DAY: 0, // use only during day
+    NIGHT: 1, // use only during night
+    DESIGNATED: 2, // need DA status to use it
+    ASTRAL: 3 // does not visit
+})
+
 export const useGameStore = create((set, get) => ({
     socket: null,
     username: null,
