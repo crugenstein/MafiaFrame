@@ -131,9 +131,9 @@ class GameManager {
         this.gameStatus = GameStatus.ROLLOVER
         AbilityManager.processPhaseEnd()
 
-        if (this.checkWinConditions()) return
-
         this.phaseType = PhaseType.NIGHT
+
+        if (this.checkWinConditions()) return
 
         const prevDP = this.getDayPhaseChat()
         prevDP.writeLock()
@@ -160,9 +160,8 @@ class GameManager {
         this.gameStatus = GameStatus.ROLLOVER
         if (doAbilityQueue) {AbilityManager.processPhaseEnd()}
 
-        if (this.checkWinConditions()) return
-
         this.phaseType = PhaseType.DAY
+        if (this.checkWinConditions()) return
         this.phaseNumber = this.phaseNumber + 1
 
         if (this.phaseNumber === 1) {this._votesNeededToAxe = Math.ceil(0.75 * this.alivePlayerCount)}
