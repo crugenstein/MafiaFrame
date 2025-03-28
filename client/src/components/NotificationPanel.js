@@ -1,28 +1,15 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { useSocket } from '../contexts/SocketContext';
+import { useGameStore } from '../store/useGameStore'
 
 export default function NotificationPanel() {
-    const socket = useSocket();
-    const [notifications, setNotifications] = useState([]);
-
-    useEffect (() => {
-
-        const recieveNotif = (newNotification) => {
-            setNotifications(prevNotifications => [...prevNotifications, newNotification]);
-        }
-
-        socket.on('RECIEVE_NOTIF', recieveNotif);
-
-
-    }, [socket]);
+    const notifs = useGameStore(state => state.notifications)
 
     return (
         <div>
-            {notifications.map((notification, index) => (
+            {notifs.map((notif, index) => 
                 <div key={index}>
-                    {notification.time + ": " + notification.text}
+                    {notif.notificationText}
                 </div>
-            ))}
+            )}
         </div>
     )
 

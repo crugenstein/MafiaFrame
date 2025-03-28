@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import "bootstrap/dist/css/bootstrap.min.css"
 import { Container, ListGroup, Navbar, Button, Modal } from "react-bootstrap"
 import { useGameStore } from '../store/useGameStore'
+import NotificationPanel from './NotificationPanel'
 import AbilityWindow from './AbilityWindow'
 import ChatBox from './ChatBox'
 import PhaseTimer from './PhaseTimer'
@@ -12,16 +13,13 @@ export default function Game() {
     const [showPopup, setShowPopup] = useState(false)
     const [selectedChatId, setSelectedChatId] = useState(null)
     const sharedChats = useGameStore(state => state.sharedChats)
-    const notifs = useGameStore(state => state.notifications)
     const role = useGameStore(state => state.role)
 
     const renderComponent = () => {
         switch (activeComponent) {
-            case 'chat': return <ChatBox chatId={selectedChatId}></ChatBox>
-            case 'abilities': return <div><AbilityWindow></AbilityWindow></div>
-            case 'notifs': return <div>{notifs.map((notif, index) => (
-                <div key={index}>{notif.notificationText}</div>
-            ))}</div>
+            case 'chat': return <ChatBox chatId={selectedChatId}/>
+            case 'abilities': return <div><AbilityWindow/></div>
+            case 'notifs': return <div><NotificationPanel/></div>
             default: return <div>Shouldn't be here</div>
         }
     }
