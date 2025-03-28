@@ -66,7 +66,7 @@ export default function AbilityWindow() {
                     </div>
                 ))}
             </div>
-            <div className="col-md-4 mb-3" >
+            {phaseType === PhaseType.DAY && <div className="col-md-4 mb-3" >
                 <Card>
                     <Card.Body>
                         <Card.Title>Send Whisper</Card.Title>
@@ -74,12 +74,15 @@ export default function AbilityWindow() {
                         <Card.Text>Whispers Left: {whisperCount}</Card.Text>
                         <Button
                             variant="primary"
-                            onClick={() => handleUseAbility('WHISPER')}>
+                            onClick={() => handleUseAbility('WHISPER')}
+                            disabled={whisperCount < 1}
+                            >
                                 Whisper
                         </Button>
                     </Card.Body>
                 </Card>
-            </div>
+            </div>}
+            
             <TargetSelectionModal 
                 show={showModal} 
                 onHide={() => setShowModal(false)} 
