@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import "bootstrap/dist/css/bootstrap.min.css"
-import { Container, ListGroup, Navbar, Button, Modal } from "react-bootstrap"
+import { Container, ListGroup, Navbar, Button, Modal, Alert } from "react-bootstrap"
 import { useGameStore } from '../store/useGameStore'
 import AbilityWindow from './AbilityWindow'
 import ChatBox from './ChatBox'
@@ -14,6 +14,7 @@ export default function Game() {
     const sharedChats = useGameStore(state => state.sharedChats)
     const notifs = useGameStore(state => state.notifications)
     const role = useGameStore(state => state.role)
+    const end = useGameStore(state => state.victory)
 
     const renderComponent = () => {
         switch (activeComponent) {
@@ -28,6 +29,9 @@ export default function Game() {
 
     return (
         <div className="d-flex flex-column min-vh-100">
+            {end ? <Alert variant={end === 'TOWN_VICTORY' ? 'success' : 'danger'}>
+            {end === 'TOWN_VICTORY' ? 'The town won! Hooray!' : (end === 'MAFIA_VICTORY' ? 'The Mafia won!' : 'Erm... draw...')}
+            </Alert> : null}
             <main className="flex-grow-1">{renderComponent()}</main>
             <Navbar fixed="bottom" bg="dark" variant="dark">
                 <Container className="justify-content-center">

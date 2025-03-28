@@ -35,6 +35,7 @@ export const useGameStore = create((set, get) => ({
     username: null,
     admin: false,
     role: null,
+    victory: null,
 
     sharedChats: new Map(),
     lobbyChat: null,
@@ -170,6 +171,12 @@ export const useGameStore = create((set, get) => ({
             set((state) => {
                 const newAbilityData = abilityData
                 return { abilities: newAbilityData, role: roleName }
+            })
+        })
+
+        socket.on('GAME_END', ({ endState }) => {
+            set((state) => {
+                return { victory: endState }
             })
         })
 
