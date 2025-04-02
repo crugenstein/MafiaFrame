@@ -134,7 +134,7 @@ export const useGameStore = create((set, get) => ({
 
         socket.on('RECEIVE_PLAYER_LIST', ({ playerList }) => {
             set((state) => {
-                const newPlayerData = new Map(state.allPlayerData)
+                const newPlayerData = new Map()
                 const newPlayerList = []
                 playerList.forEach(({username, visibleAlignment, admin, status}) => {
                     newPlayerData.set(username, {visibleAlignment, admin, status})
