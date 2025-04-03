@@ -145,6 +145,7 @@ class GameManager {
         })
 
         prevDP.addMessage(MessageType.SERVER, '[SERVER]', `The Day Phase has ended. Night Phase ${this.phaseNumber} has begun!`)
+        this.mafiaChat.addMessage(MessageType.SERVER, '[SERVER]', `${this.designatedAttacker} has been chosen as your Designated Attacker.`)
         
         if (this.checkWinConditions()) return
         this.gameStatus = GameStatus.IN_PROGRESS
@@ -162,8 +163,8 @@ class GameManager {
         this.phaseType = PhaseType.DAY
         this.phaseNumber = this.phaseNumber + 1
         
-        if (this.phaseNumber === 1) {this._votesNeededToAxe = Math.ceil(0.75 * this.alivePlayerCount)}
-        else {this._votesNeededToAxe = Math.ceil(0.5 * this.alivePlayerCount)}
+        if (this.phaseNumber === 1) {this._votesNeededToAxe = Math.floor(0.75 * this.alivePlayerCount) + 1}
+        else {this._votesNeededToAxe = Math.floor(0.5 * this.alivePlayerCount) + 1}
         
         const DP = this.createSharedChat(`Day Phase ${this.phaseNumber}`, this.allPlayers, this.alivePlayers)
         this._dayPhaseChats.set(this.phaseNumber, DP)
@@ -466,7 +467,7 @@ class GameManager {
     * @param {string|null} targetName - The name of the target. If null, represents a revoked vote.
     */
     registerDAvote(voterName, targetName) {
-        if (!this.isAlive(voterName) || !this.isMafia(voterName)) {
+        if (!this.isAliveMafia(voterName)) {
             console.error("Non-alive or nonexistent or non-mafia player attempted to cast DA vote.")
             return
         }
@@ -498,7 +499,7 @@ class GameManager {
         this._voteMap.set(voterName, voterData)
         IOManager.emitToRoom(this.mafiaChat.chatId, 'DA_VOTE_CAST', {newVoteTarget: targetName, previousVoteTarget: oldTarget})
 
-        this.mafiaChat.addMessage(MessageType.VOTE, '[SERVER]', `${voterName} has DA-voted for ${targetName}. They now have ${newTargetData.DAvotesReceived} vote(s).`)
+        this.mafiaChat.addMessage(MessageType.VOTE, '[SERVER]', `${voterName} has voted for ${targetName} to be the Designated Attacker tonight. They now have ${newTargetData.DAvotesReceived} vote(s).`)
     }
     
     /**

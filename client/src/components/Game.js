@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import "bootstrap/dist/css/bootstrap.min.css"
-import { Container, ListGroup, Navbar, Button, Modal, Alert } from "react-bootstrap"
+import { Container, ListGroup, Navbar, Button, Modal, Alert, Badge } from "react-bootstrap"
 import { useGameStore } from '../store/useGameStore'
 import AbilityWindow from './AbilityWindow'
 import ChatBox from './ChatBox'
@@ -15,6 +15,7 @@ export default function Game() {
     const notifs = useGameStore(state => state.notifications)
     const role = useGameStore(state => state.role)
     const end = useGameStore(state => state.victory)
+    const isDesignatedAttacker = useGameStore(state => state.isDesignatedAttacker)
 
     const renderComponent = () => {
         switch (activeComponent) {
@@ -38,8 +39,13 @@ export default function Game() {
                     <Button className='mx-2' onClick={() => setShowPopup(true)}>Chats</Button>
                     <Button className='mx-2' onClick={() => setActiveComponent('abilities')}>Abilities</Button>
                     <Button className='mx-2' onClick={() => setActiveComponent('notifs')}>Notifications</Button>
+
+                    <div className='ms-auto'>
+                        <label className='ms-auto' style={{ color: 'white', opacity: 1, visibility: 'visible' }}>{role === null ? 'Generating role...' : `Your role is ${role}.`}</label>
+                        {isDesignatedAttacker && <Badge className='mx-2' bg='danger'>🔪 Designated Attacker</Badge>}
+                    </div>
                     
-                    <label className='ms-auto' style={{ color: 'white', opacity: 1, visibility: 'visible' }}>{role === null ? 'Generating role...' : `Your role is ${role}.`}</label>
+                    
                     <div className='ms-auto' style={{ color: 'white', opacity: 1, visibility: 'visible' }}> <PhaseTimer/> </div>
                 </Container>
             </Navbar>

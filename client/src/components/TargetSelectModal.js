@@ -11,11 +11,11 @@ export default function TargetSelectionModal({show, onHide, targets, selectedTar
                 <ListGroup>
                     {targets.map((target) => (
                         <ListGroup.Item
-                            key = {target.username}
+                            key = {target}
                             action
-                            onClick={() => setSelectedTarget(target.username)}
-                            active={selectedTarget?.username === target.username}
-                        >{target.username}</ListGroup.Item>
+                            onClick={() => setSelectedTarget(target)}
+                            active={selectedTarget === target}
+                        >{target}</ListGroup.Item>
                     ))}
                 </ListGroup>
             </Modal.Body>

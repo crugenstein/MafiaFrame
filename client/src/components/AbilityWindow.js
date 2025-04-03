@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useGameStore, PhaseType, AbilityTag } from "../store/useGameStore";
+import { useGameStore, PhaseType, AbilityTag, PlayerAlignment, PlayerStatus } from "../store/useGameStore";
 import { Card, Button, Badge } from 'react-bootstrap';
 import TargetSelectionModal from './TargetSelectModal';
 import WhisperTextModal from './WhisperTextModal';
@@ -7,18 +7,29 @@ import WhisperTextModal from './WhisperTextModal';
 export default function AbilityWindow() {
     const abilities = useGameStore(state => state.abilities)
     const emit = useGameStore(state => state.emit)
-    const playerList = useGameStore(state => state.playerList)
+    const playerData = useGameStore(state => state.allPlayerData)
     const phaseType = useGameStore(state => state.gamePhaseType)
     const whisperCount = useGameStore(state => state.whispers)
+    const playerAlignment = useGameStore(state => state.playerAlignment)
+    const isDesignatedAttacker = useGameStore(state => state.isDesignatedAttacker)
+    const name = useGameStore(state => state.username)
+
     const [showModal, setShowModal] = useState(false)
+    const [availableTargets, setAvailableTargets] = useState([])
     const [selectedAbility, setSelectedAbility] = useState(null)
     const [selectedTarget, setSelectedTarget] = useState(null) // this is temporary because we are only picking one
     const [whisperContents, setWhisperContents] = useState('') // temporary?
     const [showWhisperModal, setShowWhisperModal] = useState(false)
 
-    console.log(playerList)
-
     const handleUseAbility = (ability) => {
+        if (ability === 'DA_VOTE') {
+            const mafiaPlayers = Array.from(playerData).filter(([_, data]) => data.visibleAlignment === PlayerAlignment.MAFIA && data.status === PlayerStatus.ALIVE).map(([username, _]) => username)
+            setAvailableTargets(mafiaPlayers)
+        } else if (ability === 'VOTE') {
+            setAvailableTargets(Array.from(playerData).map(([username, _]) => username))
+        } else {
+            setAvailableTargets(Array.from(playerData).filter(([username, data]) => username !== name && data.status === PlayerStatus.ALIVE).map(([username, _]) => username))
+        }
         setSelectedAbility(ability)
         setShowModal(true)
     }
@@ -31,7 +42,10 @@ export default function AbilityWindow() {
             } else if (selectedAbility === 'VOTE') {
                 emit('CLICK_VOTE_ACTION', {target: selectedTarget})
                 setShowModal(false)
-            } 
+            } else if (selectedAbility === 'DA_VOTE') {
+                emit('CLICK_DA_VOTE_ACTION', {target: selectedTarget})
+                setShowModal(false)
+            }
             else {
                 emit('CLICK_SUBMIT_ABILITY', {abilityId: selectedAbility.id, targetData: [selectedTarget]}) // this targetData will need to be updated later because we love dynamic things
                 setShowModal(false)
@@ -60,7 +74,8 @@ export default function AbilityWindow() {
                                     variant="primary"
                                     onClick={() => handleUseAbility(ability)}
                                     disabled={(phaseType === PhaseType.DAY && !ability.tags.includes(AbilityTag.DAY)) ||  
-                                            (phaseType === PhaseType.NIGHT && !ability.tags.includes(AbilityTag.NIGHT))
+                                            (phaseType === PhaseType.NIGHT && !ability.tags.includes(AbilityTag.NIGHT)) ||
+                                            (!isDesignatedAttacker && ability.tags.includes(AbilityTag.DESIGNATED))
                                     }
                                 >
                                     Use
@@ -100,17 +115,33 @@ export default function AbilityWindow() {
                         </Button>
                     </Card.Body>
                 </Card>
+            </div>}
+            {(playerAlignment === PlayerAlignment.MAFIA) && 
+            <div className="col-md-4 mb-3" >
+                <Card>
+                    <Card.Body>
+                        <Card.Title>Vote for Designated Attacker</Card.Title>
+                        <Card.Subtitle className="mb-2 text-muted">Cast your vote elect the Mafia's Designated Attacker.</Card.Subtitle>
+                        <Button
+                            variant="primary"
+                            onClick={() => handleUseAbility('DA_VOTE')}
+                            >
+                                Vote
+                        </Button>
+                    </Card.Body>
+                </Card>
             </div>
             }
             
             <TargetSelectionModal 
                 show={showModal} 
                 onHide={() => setShowModal(false)} 
-                targets={playerList} 
+                targets={availableTargets}
                 selectedTarget={selectedTarget} 
                 setSelectedTarget={setSelectedTarget} 
                 onConfirm={handleConfirm}>
             </TargetSelectionModal>
+
             <WhisperTextModal 
                 show={showWhisperModal} 
                 onHide={() => setShowWhisperModal(false)}

@@ -24,7 +24,7 @@ export default function ChatBox({ chatId }) {
 
     return (
         <div className="container mt-3">
-            <div style={{height: '90vh'}} className="card shadow-lg">
+            <div style={{height: '80vh'}} className="card shadow-lg">
                 <div className="card-header bg-dark text-white text-center">
                     <h5 className="mb-0">{chat?.name}</h5>
                 </div>

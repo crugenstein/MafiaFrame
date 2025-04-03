@@ -8,11 +8,13 @@ const registerRequests = (socket, instance) => {
 
         const playerList = instance.allPlayers.map((username) => {
             const target = instance.getPlayer(username)
-            const visibleAlignment = (player.alignment === PlayerAlignment.MAFIA && target.alignment === PlayerAlignment.MAFIA) ? 'MAFIA' : 'UNKNOWN'
+            const visibleAlignment = (player.alignment === PlayerAlignment.MAFIA && target.alignment === PlayerAlignment.MAFIA) ? PlayerAlignment.MAFIA : 'UNKNOWN'
+            const visibleRole = (visibleAlignment !== 'UNKNOWN') ? target.roleName : 'UNKNOWN'
     
             return ({
                 username, 
-                visibleAlignment, 
+                visibleAlignment,
+                visibleRole,
                 admin: target.admin, 
                 status: target.status
             })

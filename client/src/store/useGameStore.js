@@ -3,6 +3,12 @@ import { io } from 'socket.io-client'
 
 const SOCKET_URL = 'http://localhost:5000' // replace this with a dynamic address later
 
+export const PlayerAlignment = Object.freeze({
+    TOWN: 0,
+    MAFIA: 1,
+    NEUTRAL: 2
+})
+
 export const PlayerStatus = Object.freeze({
     SPECTATOR: 0,
     ALIVE: 1,
@@ -35,7 +41,10 @@ export const useGameStore = create((set, get) => ({
     username: null,
     admin: false,
     role: null,
+    playerAlignment: null,
     victory: null,
+
+    isDesignatedAttacker: false,
 
     sharedChats: new Map(),
     lobbyChat: null,
@@ -136,8 +145,8 @@ export const useGameStore = create((set, get) => ({
             set((state) => {
                 const newPlayerData = new Map()
                 const newPlayerList = []
-                playerList.forEach(({username, visibleAlignment, admin, status}) => {
-                    newPlayerData.set(username, {visibleAlignment, admin, status})
+                playerList.forEach(({username, visibleAlignment, visibleRole, admin, status}) => {
+                    newPlayerData.set(username, {visibleAlignment, visibleRole, admin, status})
                     newPlayerList.push({username, admin})
                 })
                 return { allPlayerData: newPlayerData, playerList: newPlayerList }
@@ -167,10 +176,33 @@ export const useGameStore = create((set, get) => ({
 
         })
 
-        socket.on('CLIENT_GAME_STATE_UPDATE', ({ abilityData, chatData, alivePlayerList, roleName }) => {
+        socket.on('DA_UPDATE', ({ DA }) => {
+            set((state) => {
+                if (state.username === DA) return { isDesignatedAttacker: true }
+                else return { isDesignatedAttacker: false }
+            })
+        })
+
+        socket.on('PLAYER_DIED', ({ death }) => {
+            set((state) => {
+                const newPlayerData = new Map(state.allPlayerData)
+                const data = newPlayerData.get(death)
+                data.status = PlayerStatus.DEAD
+                newPlayerData.set(death, data)
+                return { allPlayerData: newPlayerData }
+            })
+        })
+
+        socket.on('CLIENT_GAME_STATE_UPDATE', ({ abilityData, chatData, playerData, roleName, alignment }) => {
             set((state) => {
                 const newAbilityData = abilityData
-                return { abilities: newAbilityData, role: roleName }
+                const newPlayerData = new Map()
+                const newPlayerList = []
+                playerData.forEach(({username, visibleAlignment, visibleRole, admin, status}) => {
+                    newPlayerData.set(username, {visibleAlignment, visibleRole, admin, status})
+                    newPlayerList.push({username, admin})
+                })
+                return { allPlayerData: newPlayerData, abilities: newAbilityData, role: roleName, playerAlignment: alignment }
             })
         })
 
