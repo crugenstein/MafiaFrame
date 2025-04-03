@@ -116,7 +116,7 @@ export default function AbilityWindow() {
                     </Card.Body>
                 </Card>
             </div>}
-            {(playerAlignment === PlayerAlignment.MAFIA) && 
+            {(phaseType === PhaseType.DAY && playerAlignment === PlayerAlignment.MAFIA) && 
             <div className="col-md-4 mb-3" >
                 <Card>
                     <Card.Body>
