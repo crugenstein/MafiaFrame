@@ -28,7 +28,11 @@ export default function AbilityWindow() {
             if (selectedAbility === 'WHISPER') {
                 setShowModal(false)
                 setShowWhisperModal(true)
-            } else {
+            } else if (selectedAbility === 'VOTE') {
+                emit('CLICK_VOTE_ACTION', {target: selectedTarget})
+                setShowModal(false)
+            } 
+            else {
                 emit('CLICK_SUBMIT_ABILITY', {abilityId: selectedAbility.id, targetData: [selectedTarget]}) // this targetData will need to be updated later because we love dynamic things
                 setShowModal(false)
             }
@@ -82,6 +86,22 @@ export default function AbilityWindow() {
                     </Card.Body>
                 </Card>
             </div>}
+            {phaseType === PhaseType.DAY && 
+            <div className="col-md-4 mb-3" >
+                <Card>
+                    <Card.Body>
+                        <Card.Title>Cast Vote</Card.Title>
+                        <Card.Subtitle className="mb-2 text-muted">Cast your vote to Axe another player.</Card.Subtitle>
+                        <Button
+                            variant="primary"
+                            onClick={() => handleUseAbility('VOTE')}
+                            >
+                                Vote
+                        </Button>
+                    </Card.Body>
+                </Card>
+            </div>
+            }
             
             <TargetSelectionModal 
                 show={showModal} 

@@ -371,7 +371,7 @@ class GameManager {
         const DP = this.getDayPhaseChat()
         DP.addMessage(MessageType.VOTE, '[SERVER]', `${voterName} has voted for ${targetName}. They now have ${newTargetData.votesReceived} vote(s).`)
 
-        if (newTargetData && (newTargetData.votesReceived > this._votesNeededToAxe)) {
+        if (newTargetData && (newTargetData.votesReceived >= this._votesNeededToAxe)) {
             this.axePlayer(targetName)
         }
     }
