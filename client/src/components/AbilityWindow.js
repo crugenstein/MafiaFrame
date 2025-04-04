@@ -26,7 +26,7 @@ export default function AbilityWindow() {
             const mafiaPlayers = Array.from(playerData).filter(([_, data]) => data.visibleAlignment === PlayerAlignment.MAFIA && data.status === PlayerStatus.ALIVE).map(([username, _]) => username)
             setAvailableTargets(mafiaPlayers)
         } else if (ability === 'VOTE') {
-            setAvailableTargets(Array.from(playerData).map(([username, _]) => username))
+            setAvailableTargets(Array.from(playerData).filter(([_, data]) => data.status === PlayerStatus.ALIVE).map(([username, _]) => username))
         } else {
             setAvailableTargets(Array.from(playerData).filter(([username, data]) => username !== name && data.status === PlayerStatus.ALIVE).map(([username, _]) => username))
         }
