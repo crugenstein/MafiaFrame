@@ -17,6 +17,7 @@ export default function Game() {
     const role = useGameStore(state => state.role)
     const end = useGameStore(state => state.victory)
     const isDesignatedAttacker = useGameStore(state => state.isDesignatedAttacker)
+    const alive = useGameStore(state => state.alive)
 
     const renderComponent = () => {
         switch (activeComponent) {
@@ -45,12 +46,10 @@ export default function Game() {
                     <Button className='mx-2' onClick={() => setShowPopup(true)}>Chats</Button>
                     <Button className='mx-2' onClick={() => setActiveComponent('abilities')}>Abilities</Button>
                     <Button className='mx-2' onClick={() => setActiveComponent('notifs')}>Notifications</Button>
-
-                    <div className='ms-auto'>
+                    {alive ? <div className='ms-auto'>
                         <label className='ms-auto' style={{ color: 'white', opacity: 1, visibility: 'visible' }}>{role === null ? 'Generating role...' : `Your role is ${role}.`}</label>
                         {isDesignatedAttacker && <Badge className='mx-2' bg='danger'>🔪 Designated Attacker</Badge>}
-                    </div>
-                    
+                    </div> : <label className='ms-auto' style={{ color: 'red', opacity: 1, visibility: 'visible' }}>You have died!</label>}
                     
                     <div className='ms-auto' style={{ color: 'white', opacity: 1, visibility: 'visible' }}> <PhaseTimer/> </div>
                 </Container>

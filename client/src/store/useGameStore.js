@@ -43,6 +43,7 @@ export const useGameStore = create((set, get) => ({
     role: null,
     playerAlignment: null,
     victory: null,
+    alive: true,
 
     isDesignatedAttacker: false,
 
@@ -53,6 +54,7 @@ export const useGameStore = create((set, get) => ({
     abilities: [],
     notifications: [],
     whispers: 3,
+    abilitySlots: 1,
 
     gamePhaseType: PhaseType.LOBBY,
     gameStatusType: GameStatus.LOBBY_WAITING,
@@ -173,7 +175,12 @@ export const useGameStore = create((set, get) => ({
             set((state) => {
                 return { whispers: whisperCount }
             })
+        })
 
+        socket.on('ABILITY_SLOT_COUNT_UPDATE', ({ abilitySlotCount }) => {
+            set((state) => {
+                return { abilitySlots: abilitySlotCount }
+            })
         })
 
         socket.on('DA_UPDATE', ({ DA }) => {
@@ -196,8 +203,9 @@ export const useGameStore = create((set, get) => ({
                 }
             
                 newPlayerData.set(death, updatedData)
+                const isAlive = (death !== state.username)
             
-                return { allPlayerData: newPlayerData }
+                return { allPlayerData: newPlayerData, alive: isAlive }
             })
         })
 

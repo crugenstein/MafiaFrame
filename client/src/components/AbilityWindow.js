@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useGameStore, PhaseType, AbilityTag, PlayerAlignment, PlayerStatus } from "../store/useGameStore";
-import { Card, Button, Badge } from 'react-bootstrap';
+import { Card, Button, Badge, Toast, ToastContainer, ToastHeader } from 'react-bootstrap';
 import TargetSelectionModal from './TargetSelectModal';
 import WhisperTextModal from './WhisperTextModal';
 
@@ -13,6 +13,8 @@ export default function AbilityWindow() {
     const playerAlignment = useGameStore(state => state.playerAlignment)
     const isDesignatedAttacker = useGameStore(state => state.isDesignatedAttacker)
     const name = useGameStore(state => state.username)
+    const alive = useGameStore(state => state.alive)
+    const abilitySlots = useGameStore(state => state.abilitySlots)
 
     const [showModal, setShowModal] = useState(false)
     const [availableTargets, setAvailableTargets] = useState([])
@@ -20,6 +22,8 @@ export default function AbilityWindow() {
     const [selectedTarget, setSelectedTarget] = useState(null) // this is temporary because we are only picking one
     const [whisperContents, setWhisperContents] = useState('') // temporary?
     const [showWhisperModal, setShowWhisperModal] = useState(false)
+    const [showToast, setShowToast] = useState(false)
+    const [toastMessage, setToastMessage] = useState('')
 
     const handleUseAbility = (ability) => {
         if (ability === 'DA_VOTE') {
@@ -42,20 +46,38 @@ export default function AbilityWindow() {
             } else if (selectedAbility === 'VOTE') {
                 emit('CLICK_VOTE_ACTION', {target: selectedTarget})
                 setShowModal(false)
+
+                setToastMessage(`You voted for ${selectedTarget} to be Axed.`)
+                setShowToast(true)
+                setTimeout(() => setShowToast(false), 6000)
             } else if (selectedAbility === 'DA_VOTE') {
                 emit('CLICK_DA_VOTE_ACTION', {target: selectedTarget})
                 setShowModal(false)
+
+                setToastMessage(`You voted for ${selectedTarget} to be the Designated Attacker.`)
+                setShowToast(true)
+                setTimeout(() => setShowToast(false), 6000)
             }
             else {
+                const display = abilitySlots - 1
                 emit('CLICK_SUBMIT_ABILITY', {abilityId: selectedAbility.id, targetData: [selectedTarget]}) // this targetData will need to be updated later because we love dynamic things
                 setShowModal(false)
+
+                setToastMessage(`Ability recorded! You can use ${display} more abilit${display === 1 ? 'y' : 'ies'} during this phase.`)
+                setShowToast(true)
+                setTimeout(() => setShowToast(false), 6000)
             }
         }
     }
 
     const handleWhisperConfirm = () => {
+        const display = whisperCount - 1
         emit('CLICK_WHISPER_ACTION', {contents: whisperContents, recipient: selectedTarget})
         setShowWhisperModal(false)
+
+        setToastMessage(`You sent a whisper to ${selectedTarget}. You can send ${display} more whisper${display === 1 ? '' : 's'} during this Day Phase.`)
+        setShowToast(true)
+        setTimeout(() => setShowToast(false), 6000)
     }
 
     return (
@@ -75,7 +97,9 @@ export default function AbilityWindow() {
                                     onClick={() => handleUseAbility(ability)}
                                     disabled={(phaseType === PhaseType.DAY && !ability.tags.includes(AbilityTag.DAY)) ||  
                                             (phaseType === PhaseType.NIGHT && !ability.tags.includes(AbilityTag.NIGHT)) ||
-                                            (!isDesignatedAttacker && ability.tags.includes(AbilityTag.DESIGNATED))
+                                            (!isDesignatedAttacker && ability.tags.includes(AbilityTag.DESIGNATED)) ||
+                                            !alive ||
+                                            abilitySlots < 1
                                     }
                                 >
                                     Use
@@ -94,7 +118,7 @@ export default function AbilityWindow() {
                         <Button
                             variant="primary"
                             onClick={() => handleUseAbility('WHISPER')}
-                            disabled={whisperCount < 1}
+                            disabled={whisperCount < 1 || !alive}
                             >
                                 Whisper
                         </Button>
@@ -110,6 +134,7 @@ export default function AbilityWindow() {
                         <Button
                             variant="primary"
                             onClick={() => handleUseAbility('VOTE')}
+                            disabled={!alive}
                             >
                                 Vote
                         </Button>
@@ -125,6 +150,7 @@ export default function AbilityWindow() {
                         <Button
                             variant="primary"
                             onClick={() => handleUseAbility('DA_VOTE')}
+                            disabled={!alive}
                             >
                                 Vote
                         </Button>
@@ -149,6 +175,20 @@ export default function AbilityWindow() {
                 setWhisperContents={setWhisperContents}
                 onConfirm={handleWhisperConfirm}>
             </WhisperTextModal>
+
+            <ToastContainer position="top-end" className="p-3">
+                <Toast 
+                    show={showToast} 
+                    onClose={() => setShowToast(false)} 
+                    bg="success" 
+                    delay={6000} 
+                    autohide
+                >
+                    <Toast.Body className={'text-white'}>
+                        {toastMessage}
+                    </Toast.Body>
+                </Toast>
+            </ToastContainer>
         </div>
     )
 }
