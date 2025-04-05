@@ -5,6 +5,7 @@ import { useGameStore } from '../store/useGameStore'
 import AbilityWindow from './AbilityWindow'
 import ChatBox from './ChatBox'
 import PhaseTimer from './PhaseTimer'
+import PlayerList from './PlayerList'
 
 
 export default function Game() {
@@ -19,7 +20,12 @@ export default function Game() {
 
     const renderComponent = () => {
         switch (activeComponent) {
-            case 'chat': return <ChatBox chatId={selectedChatId}></ChatBox>
+            case 'chat': return (
+                <Container className="align-items-center d-flex" style={{height:'100vh'}}>
+                    <PlayerList lobbyMode={false}/>
+                    <ChatBox chatId={selectedChatId}/>
+                </Container>
+            )
             case 'abilities': return <div><AbilityWindow></AbilityWindow></div>
             case 'notifs': return <div>{notifs.map((notif, index) => (
                 <div key={index}>{notif.notificationText}</div>

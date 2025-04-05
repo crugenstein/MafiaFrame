@@ -34,7 +34,7 @@ export default function Lobby() {
         ( phaseType === PhaseType.DAY || phaseType === PhaseType.NIGHT ? <Game /> :
         <div>
         <Container className="align-items-center d-flex" style={{height:'100vh'}}>
-            <PlayerList />
+            <PlayerList lobbyMode={true}/>
             <ChatBox chatId={lobbyChatId}/>
         </Container>
         {admin && <Navbar fixed="bottom" bg="dark" variant="dark">

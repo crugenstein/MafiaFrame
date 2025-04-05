@@ -2,7 +2,7 @@ const { PlayerAlignment } = require('../data/enums')
 
 const roleDictionary = {
     "PLACEHOLDER_DETECTIVE": {
-        name: "Detective (Placeholder)",
+        name: "Detective",
         alignment: PlayerAlignment.TOWN,
         class: "INVESTIGATIVE",
         abilities: [
@@ -12,7 +12,7 @@ const roleDictionary = {
         unique: false
     },
     "PLACEHOLDER_GUARD": {
-        name: "Guard (Placeholder)",
+        name: "Guard",
         alignment: PlayerAlignment.TOWN,
         class: "PROTECTIVE",
         abilities: [
@@ -22,7 +22,7 @@ const roleDictionary = {
         unique: false
     },
     "PLACEHOLDER_MAFIOSO": {
-        name: "Mafioso (Placeholder)",
+        name: "Mafioso",
         alignment: PlayerAlignment.MAFIA,
         class: "KILLING",
         abilities: [
@@ -32,7 +32,7 @@ const roleDictionary = {
         unique: false
     },
     "PLACEHOLDER_GODFATHER": {
-        name: "Godfather (Placeholder)",
+        name: "Godfather",
         alignment: PlayerAlignment.MAFIA,
         class: "KILLING",
         abilities: [

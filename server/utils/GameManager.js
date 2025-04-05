@@ -179,7 +179,8 @@ class GameManager {
 
         DP.addMessage(MessageType.SERVER, '[SERVER]', `Welcome to Day Phase ${this.phaseNumber}.`)
         this.diedLastNight.forEach((recentDeathName) => {
-            DP.addMessage(MessageType.SERVER, '[SERVER]', `${recentDeathName} died last night.`)
+            const deadRole = this.getPlayer(recentDeathName).roleName
+            DP.addMessage(MessageType.SERVER, '[SERVER]', `${recentDeathName} died last night. Their role was ${deadRole}.`)
         })
         DP.addMessage(MessageType.SERVER, '[SERVER]', `There are ${this.alivePlayerCount} players remaining.`)
         DP.addMessage(MessageType.SERVER, '[SERVER]', `It will take ${this._votesNeededToAxe} votes to Axe a player.`)
@@ -197,7 +198,7 @@ class GameManager {
     * @returns {boolean} - Whether or not a game-ending Win Condition has been reached.
     */
     checkWinConditions() {
-        if (this.aliveMafiaCount + 1 > this.alivePlayerCount) {
+        if (this.aliveMafiaCount >= this.alivePlayerCount) {
             this.endGame('MAFIA VICTORY')
             return true
         } else if (this.aliveMafiaCount === 0) {
@@ -390,6 +391,9 @@ class GameManager {
         DP.addMessage(MessageType.SERVER, '[SERVER]', `${targetName} was Axed!`)
 
         this.killPlayer(targetName)
+        
+        const role = this.getPlayer(targetName).roleName
+        DP.addMessage(MessageType.SERVER, '[SERVER]', `${targetName}'s role was ${role}.`)
 
         this.endDayPhase()
     }
@@ -430,7 +434,10 @@ class GameManager {
             this._diedLastNight.add(victimName)
         }
 
-        IOManager.globalEmit('PLAYER_DIED', {death: victimName})
+        const victimRole = victim.roleName
+        const victimAlignment = victim.alignment
+
+        IOManager.globalEmit('PLAYER_DIED', {death: victimName, role: victimRole, alignment: victimAlignment })
         victim.notif(NotificationType.ABILITY_RESULT, 'You have died.')
     }
 

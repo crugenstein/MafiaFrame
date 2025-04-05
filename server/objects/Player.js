@@ -222,8 +222,14 @@ class Player {
 
         const playerData = this.gameInstance.allPlayers.map((username) => {
             const target = this.gameInstance.getPlayer(username)
-            const visibleAlignment = (this.alignment === PlayerAlignment.MAFIA && target.alignment === PlayerAlignment.MAFIA) ? PlayerAlignment.MAFIA : 'UNKNOWN'
-            const visibleRole = (visibleAlignment !== 'UNKNOWN') ? target.roleName : 'UNKNOWN'
+
+            let visibleAlignment = 'UNKNOWN'
+            let visibleRole = 'UNKNOWN'
+
+            if (target.status == PlayerStatus.DEAD || (this.alignment === PlayerAlignment.MAFIA && target.alignment == PlayerAlignment.MAFIA)) {
+                visibleRole = target.roleName
+                visibleAlignment = target.alignment
+            }
     
             return ({
                 username, 

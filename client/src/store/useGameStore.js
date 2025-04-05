@@ -183,12 +183,20 @@ export const useGameStore = create((set, get) => ({
             })
         })
 
-        socket.on('PLAYER_DIED', ({ death }) => {
+        socket.on('PLAYER_DIED', ({ death, role, alignment }) => {
             set((state) => {
                 const newPlayerData = new Map(state.allPlayerData)
-                const data = newPlayerData.get(death)
-                data.status = PlayerStatus.DEAD
-                newPlayerData.set(death, data)
+                const oldData = newPlayerData.get(death)
+            
+                const updatedData = {
+                    ...oldData,
+                    status: PlayerStatus.DEAD,
+                    visibleAlignment: alignment,
+                    visibleRole: role,
+                }
+            
+                newPlayerData.set(death, updatedData)
+            
                 return { allPlayerData: newPlayerData }
             })
         })
