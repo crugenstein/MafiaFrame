@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useGameStore, PhaseType, AbilityTag, PlayerAlignment, PlayerStatus } from "../store/useGameStore";
-import { Card, Button, Badge, Toast, ToastContainer, ToastHeader } from 'react-bootstrap';
+import { Card, Button, Badge, Toast, ToastContainer } from 'react-bootstrap';
 import TargetSelectionModal from './TargetSelectModal';
 import WhisperTextModal from './WhisperTextModal';
 

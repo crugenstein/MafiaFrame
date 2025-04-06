@@ -22,7 +22,7 @@ export default function Game() {
     const renderComponent = () => {
         switch (activeComponent) {
             case 'chat': return (
-                <Container className="align-items-center d-flex" style={{height:'100vh'}}>
+                <Container className="align-items-center d-flex" style={{height:'91vh'}}>
                     <PlayerList lobbyMode={false}/>
                     <ChatBox chatId={selectedChatId}/>
                 </Container>
@@ -40,7 +40,7 @@ export default function Game() {
             {end ? <Alert variant={end === 'TOWN VICTORY' ? 'success' : 'danger'}>
             {end === 'TOWN VICTORY' ? 'The town won! Hooray!' : (end === 'MAFIA VICTORY' ? 'The Mafia won!' : 'Erm... draw...')}
             </Alert> : null}
-            <main className="flex-grow-1">{renderComponent()}</main>
+            <main className="flex-grow-1" style={{ paddingBottom: '8vh' /* to account for the navbar. Goofy. Bad even */}}>{renderComponent()}</main>
             <Navbar fixed="bottom" bg="dark" variant="dark">
                 <Container className="justify-content-center">
                     <Button className='mx-2' onClick={() => setShowPopup(true)}>Chats</Button>

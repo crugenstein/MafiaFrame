@@ -27,6 +27,7 @@ const instance = GameManager.getInstance()
 
 io.on('connection', (socket) => {
   console.log(`New client connected: ${socket.id}`)
+  socket.emit('ACK_FROM_SERVER', { connectionMessage: 'Connected to MafiaFrame server successfully!'})
 
   registerEvents(socket, instance)
   registerRequests(socket, instance)

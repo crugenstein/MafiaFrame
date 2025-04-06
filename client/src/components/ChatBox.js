@@ -15,11 +15,8 @@ export default function ChatBox({ chatId }) {
         setMessage('')
     }
 
-    console.log(chatId)
-    console.log(chat)
-
     if (!chat) {
-        return <div>The chat Id was {chatId}.</div>
+        return <div>Critical error! The chat ID was {chatId}.</div>
     }
 
     return (
