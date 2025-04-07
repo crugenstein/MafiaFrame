@@ -15,21 +15,18 @@ export default function ChatBox({ chatId }) {
         setMessage('')
     }
 
-    console.log(chatId)
-    console.log(chat)
-
     if (!chat) {
-        return <div>The chat Id was {chatId}.</div>
+        return <div>Critical error! The chat ID was {chatId}.</div>
     }
 
     return (
         <div className="container mt-3">
-            <div className="card shadow-lg">
+            <div style={{height: '80vh'}} className="card shadow-lg">
                 <div className="card-header bg-dark text-white text-center">
                     <h5 className="mb-0">{chat?.name}</h5>
                 </div>
 
-                <div style={{ width: '100%', height: '300px', overflowY: 'auto', border: '1px solid gray', padding: '10px', marginBottom: '10px' }}>
+                <div style={{ width: '100%', height: '100%', overflowY: 'auto', border: '1px solid gray', padding: '10px', marginBottom: '10px' }}>
                     {messages.map((msg, index) => (
                         <div key={index} style={{
                             marginBottom: '5px',

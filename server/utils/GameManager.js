@@ -19,7 +19,7 @@ class GameManager {
         this._gameStatus = GameStatus.LOBBY_WAITING
 
         this._phaseNumber = 0
-        this._phaseTimeLeft = 15
+        this._phaseTimeLeft = 2 // CHANGE BACK FOR DEBUG
         this._phaseLength = 150
 
         /**
@@ -110,7 +110,7 @@ class GameManager {
 
     /** Transitions from lobby to first day phase. */
     startGame() {
-        console.log('game start!!')
+        console.log('Game start!')
         this.gameStatus = GameStatus.ROLLOVER
         RoleDistributor.distribute(GameManager.getInstance())
 
@@ -133,8 +133,6 @@ class GameManager {
 
         this.phaseType = PhaseType.NIGHT
 
-        if (this.checkWinConditions()) return
-
         const prevDP = this.getDayPhaseChat()
         prevDP.writeLock()
 
@@ -147,7 +145,9 @@ class GameManager {
         })
 
         prevDP.addMessage(MessageType.SERVER, '[SERVER]', `The Day Phase has ended. Night Phase ${this.phaseNumber} has begun!`)
-
+        this.mafiaChat.addMessage(MessageType.SERVER, '[SERVER]', `${this.designatedAttacker} has been chosen as your Designated Attacker.`)
+        
+        if (this.checkWinConditions()) return
         this.gameStatus = GameStatus.IN_PROGRESS
         this.phaseTimeLeft = 150
     }
@@ -161,12 +161,11 @@ class GameManager {
         if (doAbilityQueue) {AbilityManager.processPhaseEnd()}
 
         this.phaseType = PhaseType.DAY
-        if (this.checkWinConditions()) return
         this.phaseNumber = this.phaseNumber + 1
-
-        if (this.phaseNumber === 1) {this._votesNeededToAxe = Math.ceil(0.75 * this.alivePlayerCount)}
-        else {this._votesNeededToAxe = Math.ceil(0.5 * this.alivePlayerCount)}
-
+        
+        if (this.phaseNumber === 1) {this._votesNeededToAxe = Math.floor(0.75 * this.alivePlayerCount) + 1}
+        else {this._votesNeededToAxe = Math.floor(0.5 * this.alivePlayerCount) + 1}
+        
         const DP = this.createSharedChat(`Day Phase ${this.phaseNumber}`, this.allPlayers, this.alivePlayers)
         this._dayPhaseChats.set(this.phaseNumber, DP)
 
@@ -180,13 +179,15 @@ class GameManager {
 
         DP.addMessage(MessageType.SERVER, '[SERVER]', `Welcome to Day Phase ${this.phaseNumber}.`)
         this.diedLastNight.forEach((recentDeathName) => {
-            DP.addMessage(MessageType.SERVER, '[SERVER]', `${recentDeathName} died last night.`)
+            const deadRole = this.getPlayer(recentDeathName).roleName
+            DP.addMessage(MessageType.SERVER, '[SERVER]', `${recentDeathName} died last night. Their role was ${deadRole}.`)
         })
         DP.addMessage(MessageType.SERVER, '[SERVER]', `There are ${this.alivePlayerCount} players remaining.`)
         DP.addMessage(MessageType.SERVER, '[SERVER]', `It will take ${this._votesNeededToAxe} votes to Axe a player.`)
         DP.addMessage(MessageType.SERVER, '[SERVER]', `The Day Phase ends in ${this._phaseLength} seconds. Good luck!`)
 
         this._diedLastNight.clear()
+        if (this.checkWinConditions()) return
 
         this.gameStatus = GameStatus.IN_PROGRESS
         this.phaseTimeLeft = 150
@@ -197,7 +198,7 @@ class GameManager {
     * @returns {boolean} - Whether or not a game-ending Win Condition has been reached.
     */
     checkWinConditions() {
-        if (this.aliveMafiaCount + 1 > this.alivePlayerCount) {
+        if (this.aliveMafiaCount >= this.alivePlayerCount) {
             this.endGame('MAFIA VICTORY')
             return true
         } else if (this.aliveMafiaCount === 0) {
@@ -372,7 +373,7 @@ class GameManager {
         const DP = this.getDayPhaseChat()
         DP.addMessage(MessageType.VOTE, '[SERVER]', `${voterName} has voted for ${targetName}. They now have ${newTargetData.votesReceived} vote(s).`)
 
-        if (newTargetData && (newTargetData.votesReceived > this._votesNeededToAxe)) {
+        if (newTargetData && (newTargetData.votesReceived >= this._votesNeededToAxe)) {
             this.axePlayer(targetName)
         }
     }
@@ -390,6 +391,9 @@ class GameManager {
         DP.addMessage(MessageType.SERVER, '[SERVER]', `${targetName} was Axed!`)
 
         this.killPlayer(targetName)
+        
+        const role = this.getPlayer(targetName).roleName
+        DP.addMessage(MessageType.SERVER, '[SERVER]', `${targetName}'s role was ${role}.`)
 
         this.endDayPhase()
     }
@@ -430,7 +434,10 @@ class GameManager {
             this._diedLastNight.add(victimName)
         }
 
-        IOManager.globalEmit('PLAYER_DIED', {death: victimName})
+        const victimRole = victim.roleName
+        const victimAlignment = victim.alignment
+
+        IOManager.globalEmit('PLAYER_DIED', {death: victimName, role: victimRole, alignment: victimAlignment })
         victim.notif(NotificationType.ABILITY_RESULT, 'You have died.')
     }
 
@@ -453,7 +460,6 @@ class GameManager {
     registerWhisper(senderName, recipientName, contents) {
         const sender = this.getPlayer(senderName)
         const recipient = this.getPlayer(recipientName)
-        console.log(`${senderName} is trying to send ${contents} to ${recipientName}.`)
 
         if (sender.whispers < 1) return
         sender.whispers = sender.whispers - 1
@@ -467,7 +473,7 @@ class GameManager {
     * @param {string|null} targetName - The name of the target. If null, represents a revoked vote.
     */
     registerDAvote(voterName, targetName) {
-        if (!this.isAlive(voterName) || !this.isMafia(voterName)) {
+        if (!this.isAliveMafia(voterName)) {
             console.error("Non-alive or nonexistent or non-mafia player attempted to cast DA vote.")
             return
         }
@@ -499,7 +505,7 @@ class GameManager {
         this._voteMap.set(voterName, voterData)
         IOManager.emitToRoom(this.mafiaChat.chatId, 'DA_VOTE_CAST', {newVoteTarget: targetName, previousVoteTarget: oldTarget})
 
-        this.mafiaChat.addMessage(MessageType.VOTE, '[SERVER]', `${voterName} has DA-voted for ${targetName}. They now have ${newTargetData.DAvotesReceived} vote(s).`)
+        this.mafiaChat.addMessage(MessageType.VOTE, '[SERVER]', `${voterName} has voted for ${targetName} to be the Designated Attacker tonight. They now have ${newTargetData.DAvotesReceived} vote(s).`)
     }
     
     /**

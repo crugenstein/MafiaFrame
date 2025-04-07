@@ -5,6 +5,7 @@ import "bootstrap/dist/css/bootstrap.min.css"
 import { Container, Button, Navbar } from 'react-bootstrap'
 import { useGameStore, PhaseType } from '../store/useGameStore'
 import ChatBox from './ChatBox'
+import PlayerList from './PlayerList'
 
 export default function Lobby() {
     const username = useGameStore(state => state.username)
@@ -12,11 +13,6 @@ export default function Lobby() {
     const admin = useGameStore(state => state.admin)
     const phaseType = useGameStore(state => state.gamePhaseType)
     const lobbyChatId = useGameStore(state => state.lobbyChat)
-    const playerList = useGameStore(state => state.playerList)
-    
-    const playerDisplay = playerList.map(({ username, admin }) => (
-        admin ? `${username} (ADMIN)` : username
-    ))
     
     function handleJoin(submittedUsername) {
         const { emit, setUsername, setLobbyChat, setAdmin } = useGameStore.getState()
@@ -38,7 +34,7 @@ export default function Lobby() {
         ( phaseType === PhaseType.DAY || phaseType === PhaseType.NIGHT ? <Game /> :
         <div>
         <Container className="align-items-center d-flex" style={{height:'100vh'}}>
-            <h3>Users: {playerDisplay.join(', ')}</h3>
+            <PlayerList lobbyMode={true}/>
             <ChatBox chatId={lobbyChatId}/>
         </Container>
         {admin && <Navbar fixed="bottom" bg="dark" variant="dark">

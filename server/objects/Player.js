@@ -1,4 +1,4 @@
-const { PlayerStatus } = require('../data/enums')
+const { PlayerStatus, PlayerAlignment } = require('../data/enums')
 const { roleDictionary } = require('../data/roles')
 const { PhaseAbility } = require('./PhaseAbility')
 const { IOManager } = require('../io/IOManager')
@@ -219,6 +219,27 @@ class Player {
     clientGameStateUpdate() {
         let abilityData = []
         let chatData = []
+
+        const playerData = this.gameInstance.allPlayers.map((username) => {
+            const target = this.gameInstance.getPlayer(username)
+
+            let visibleAlignment = 'UNKNOWN'
+            let visibleRole = 'UNKNOWN'
+
+            if (target.status == PlayerStatus.DEAD || (this.alignment === PlayerAlignment.MAFIA && target.alignment == PlayerAlignment.MAFIA)) {
+                visibleRole = target.roleName
+                visibleAlignment = target.alignment
+            }
+    
+            return ({
+                username, 
+                visibleAlignment,
+                visibleRole,
+                admin: target.admin, 
+                status: target.status
+            })
+
+        })
         
         this.activeAbilityIdList.forEach((id) => {
             const ability = this.getAbility(id)
@@ -230,8 +251,7 @@ class Player {
             chatData.push(chat.getVisibleData())
         })
 
-        const alivePlayerList = this.gameInstance.alivePlayers
-        const data = {abilityData, chatData, alivePlayerList, roleName: this.roleName}
+        const data = {abilityData, chatData, playerData, roleName: this.roleName, alignment: this.alignment}
 
         IOManager.emitToPlayer(this, 'CLIENT_GAME_STATE_UPDATE', data)
     }
