@@ -18,6 +18,8 @@ export default function Game() {
     const end = useGameStore(state => state.victory)
     const isDesignatedAttacker = useGameStore(state => state.isDesignatedAttacker)
     const alive = useGameStore(state => state.alive)
+    const unreadNotifications = useGameStore(state => state.unreadNotifications)
+    const { clearUnreadNotifications } = useGameStore.getState()
 
     const renderComponent = () => {
         switch (activeComponent) {
@@ -43,7 +45,7 @@ export default function Game() {
                 <Container className="justify-content-center">
                     <Button className='mx-2' onClick={() => setShowPopup(true)}>Chats</Button>
                     <Button className='mx-2' onClick={() => setActiveComponent('abilities')}>Abilities</Button>
-                    <Button className='mx-2' onClick={() => setActiveComponent('notifs')}>Notifications</Button>
+                    <Button className='mx-2' onClick={() => {setActiveComponent('notifs'); clearUnreadNotifications()}}>Notifications {unreadNotifications === 0 ? '' : <Badge bg='danger'>{unreadNotifications}</Badge>}</Button>
                     {alive ? <div className='ms-auto'>
                         <label className='ms-auto' style={{ color: 'white', opacity: 1, visibility: 'visible' }}>{role === null ? 'Generating role...' : `Your role is ${role}.`}</label>
                         {isDesignatedAttacker && <Badge className='mx-2' bg='danger'>🔪 Designated Attacker</Badge>}
