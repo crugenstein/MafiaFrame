@@ -28,9 +28,7 @@ export default function Game() {
                 </Container>
             )
             case 'abilities': return <div><AbilityWindow></AbilityWindow></div>
-            case 'notifs': return <div>{notifs.map((notif, index) => (
-                <div key={index}>{notif.notificationText}</div>
-            ))}</div>
+            case 'notifs': return <div><NotificationPanel/></div>
             default: return <div>Shouldn't be here</div>
         }
     }
