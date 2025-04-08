@@ -1,7 +1,6 @@
 import React from 'react'
 import LobbyLogin from './LobbyLogin'
 import Game from './Game'
-import "bootstrap/dist/css/bootstrap.min.css"
 import { useGameStore, PhaseType } from '../store/useGameStore'
 import ChatBox from './ChatBox'
 import PlayerList from './PlayerList'
@@ -27,42 +26,31 @@ export default function Lobby() {
 
         emit('CLICK_JOIN_GAME', { username: submittedUsername })
     }
-    
-    return (
-        !username ? <LobbyLogin onUsernameSubmit={handleJoin}/> : 
-        ( phaseType === PhaseType.DAY || phaseType === PhaseType.NIGHT ? <Game /> :
-            <div className="h-screen flex flex-col">
-            {/* Main content centered vertically and horizontally */}
-            <div className="flex flex-1 items-center justify-center gap-8 px-4">
-              <PlayerList lobbyMode={true} />
-              <ChatBox chatId={lobbyChatId} />
-            </div>
-          
-            {/* Admin bottom bar */}
-            {admin && (
-              <div className="fixed bottom-0 left-0 right-0 bg-gray-900/90 py-4">
-                <div className="flex justify-center gap-4">
-                  <button
-                    className="px-4 py-2 border border-white text-white rounded hover:bg-white/10 transition"
-                    onClick={() => console.log("1")}
-                  >
-                    1
-                  </button>
-                  <button
-                    className="px-4 py-2 border border-white text-white rounded hover:bg-white/10 transition"
-                    onClick={() => console.log("2")}
-                  >
-                    2
-                  </button>
-                  <button
-                    className="px-4 py-2 border border-white text-white rounded hover:bg-white/10 transition"
-                    onClick={() => socket.emit('CLICK_START_GAME')}
-                  >
-                    Start Game
-                  </button>
-                </div>
-              </div>
-            )}
-          </div>)
+
+    if (!username) return <LobbyLogin onUsernameSubmit={handleJoin}/>
+    else if (phaseType === PhaseType.DAY || phaseType === PhaseType.NIGHT) return <Game />
+    else return (
+      <div className="h-screen flex bg-gradient-to-br from-gray-800 via-gray-900 to-black text-white">
+        <div className="flex-[3] p-4 overflow-hidden">
+          <div className="h-full backdrop-blur-lg bg-white/10 rounded-xl p-4 shadow-xl">
+            <ChatBox chatId={lobbyChatId} />
+          </div>
+        </div>
+      <div className="flex-[1] p-4 flex flex-col gap-4">
+        <div className="flex-1 backdrop-blur-lg bg-white/10 rounded-xl p-4 shadow-xl">
+          <PlayerList lobbyMode={true} />
+        </div>
+        {admin && (
+          <div className="backdrop-blur-lg bg-white/10 rounded-xl p-4 shadow-xl overflow-hidden">
+            <button
+              className="w-full px-4 py-2 text-white rounded bg-gradient-to-r from-purple-700 via-indigo-700 to-blue-700 hover:from-purple-600 hover:via-indigo-600 hover:to-blue-600 transition-all duration-300 shadow-lg"
+              onClick={() => socket.emit('CLICK_START_GAME')}
+            >
+              Start Game
+            </button>
+          </div>
+        )}
+        </div>
+    </div>
     )
 }

@@ -1,5 +1,4 @@
 import React, { useState } from 'react'
-import "bootstrap/dist/css/bootstrap.min.css"
 import { Container, ListGroup, Navbar, Button, Modal, Alert, Badge } from "react-bootstrap"
 import { useGameStore } from '../store/useGameStore'
 import AbilityWindow from './AbilityWindow'
