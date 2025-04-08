@@ -217,9 +217,11 @@ export const useGameStore = create((set, get) => ({
                         }
                     
                         newPlayerData.set(death, updatedData)
-                        const isAlive = (death !== state.username)
-                    
-                        return { allPlayerData: newPlayerData, alive: isAlive }
+                        if (death === state.username) {
+                            return {allPlayerData: newPlayerData, alive: false}
+                        } else {
+                            return { allPlayerData: newPlayerData }
+                        }
                     })
                 })
         
