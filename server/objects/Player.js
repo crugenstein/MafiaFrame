@@ -251,7 +251,9 @@ class Player {
             chatData.push(chat.getVisibleData())
         })
 
-        const data = {abilityData, chatData, playerData, roleName: this.roleName, alignment: this.alignment}
+        const currentDP = this.gameInstance.getDayPhaseChat()?.chatId
+
+        const data = {abilityData, chatData, playerData, roleName: this.roleName, alignment: this.alignment, currentDP }
 
         IOManager.emitToPlayer(this, 'CLIENT_GAME_STATE_UPDATE', data)
     }

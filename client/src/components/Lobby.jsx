@@ -1,6 +1,7 @@
 import React from 'react'
 import LobbyLogin from './LobbyLogin'
 import Game from './Game'
+import NewGame from './NewGame'
 import { useGameStore, PhaseType } from '../store/useGameStore'
 import ChatBox from './ChatBox'
 import PlayerList from './PlayerList'
@@ -28,7 +29,7 @@ export default function Lobby() {
     }
 
     if (!username) return <LobbyLogin onUsernameSubmit={handleJoin}/>
-    else if (phaseType === PhaseType.DAY || phaseType === PhaseType.NIGHT) return <Game />
+    else if (phaseType === PhaseType.DAY || phaseType === PhaseType.NIGHT) return <NewGame />
     else return (
       <div className="h-screen flex bg-gradient-to-br from-gray-800 via-gray-900 to-black text-white">
         <div className="flex-[3] p-4 overflow-hidden">
@@ -43,7 +44,7 @@ export default function Lobby() {
         {admin && (
           <div className="backdrop-blur-lg bg-white/10 rounded-xl p-4 shadow-xl overflow-hidden">
             <button
-              className="w-full px-4 py-2 text-white rounded bg-gradient-to-r from-purple-700 via-indigo-700 to-blue-700 hover:from-purple-600 hover:via-indigo-600 hover:to-blue-600 transition-all duration-300 shadow-lg"
+              className="font-semibold w-full px-4 py-2 text-white rounded bg-gradient-to-r from-purple-700 via-indigo-700 to-blue-700 hover:from-purple-600 hover:via-indigo-600 hover:to-blue-600 transition-all duration-300 shadow-lg"
               onClick={() => socket.emit('CLICK_START_GAME')}
             >
               Start Game

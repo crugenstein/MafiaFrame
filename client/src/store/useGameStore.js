@@ -54,6 +54,8 @@ export const useGameStore = create((set, get) => ({
     whispers: 3,
     abilitySlots: 1,
 
+    currentDPId: null,
+
     gamePhaseType: PhaseType.LOBBY,
     gameStatusType: GameStatus.LOBBY_WAITING,
     gamePhaseNumber: 0,
@@ -225,7 +227,7 @@ export const useGameStore = create((set, get) => ({
                     })
                 })
         
-                socket.on('CLIENT_GAME_STATE_UPDATE', ({ abilityData, chatData, playerData, roleName, alignment }) => {
+                socket.on('CLIENT_GAME_STATE_UPDATE', ({ abilityData, chatData, playerData, roleName, alignment, currentDP }) => {
                     set((state) => {
                         const newAbilityData = abilityData
                         const newPlayerData = new Map()
@@ -234,7 +236,7 @@ export const useGameStore = create((set, get) => ({
                             newPlayerData.set(username, {visibleAlignment, visibleRole, admin, status})
                             newPlayerList.push({username, admin})
                         })
-                        return { allPlayerData: newPlayerData, abilities: newAbilityData, role: roleName, playerAlignment: alignment }
+                        return { allPlayerData: newPlayerData, abilities: newAbilityData, role: roleName, playerAlignment: alignment, currentDPId: currentDP }
                     })
                 })
         
