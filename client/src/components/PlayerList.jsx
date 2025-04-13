@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { PlayerStatus, PlayerAlignment, useGameStore } from '../store/useGameStore'
+import { PhaseType, PlayerStatus, PlayerAlignment, useGameStore } from '../store/useGameStore'
 import WhisperTextModal from './WhisperTextModal'
 import Toast from './Toast'
 
@@ -7,6 +7,8 @@ export default function PlayerList({ lobbyMode }) {
     const playerData = useGameStore(state => state.allPlayerData)
     const emit = useGameStore(state => state.emit)
     const whisperCount = useGameStore(state => state.whispers)
+    const phaseType = useGameStore(state => state.gamePhaseType)
+    const username = useGameStore(state => state.username)
 
     const [showToast, setShowToast] = useState(false)
     const [toastText, setToastText] = useState('')
@@ -53,16 +55,22 @@ export default function PlayerList({ lobbyMode }) {
                 <li key={name} className='w-full rounded-lg bg-white/15 pl-2 pr-3 py-2 text-white shadow flex items-center justify-between text-sm'>
                     <div className="flex items-center gap-x-2 overflow-hidden">
                         <div className="flex items-center gap-x-1">
-                            <button className="p-1 rounded bg-indigo-400 hover:bg-indigo-500 transition text-white font-semibold shadow"
+                            <button className="p-1 rounded bg-indigo-400 hover:bg-indigo-500 transition text-white font-semibold shadow disabled:bg-gray-400 disabled:cursor-not-allowed"
                                     onClick={() => {
                                         emit('CLICK_VOTE_ACTION', {target: name})
                                     }}
+                                    disabled={phaseType !== PhaseType.DAY
+                                    }
                             >🪓</button>
-                            <button className="p-1 rounded bg-indigo-400 hover:bg-indigo-500 transition text-white font-semibold shadow"
+                            <button className="p-1 rounded bg-indigo-400 hover:bg-indigo-500 transition text-white font-semibold shadow disabled:bg-gray-400 disabled:cursor-not-allowed"
                                     onClick={() => {
                                         setWhisperTarget(name)
                                         setShowWhisperModal(true)
                                     }}
+                                    disabled={phaseType !== PhaseType.DAY ||
+                                        whisperCount < 1 ||
+                                        name === username
+                                    }
                             >💬</button>
                         </div>
                         <span className="truncate max-w-[260px] text-white">{name}</span>
