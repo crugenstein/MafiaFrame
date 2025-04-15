@@ -22,11 +22,11 @@ export default function NotificationPanel({ swap }) {
     }
 
     return (
-        <div>
+        <div className='flex flex-col h-full'>
             <div className='flex items-center justify-between mb-2'>
                 <span className='text-lg font-semibold text-white'>Notifications</span>
             </div>
-            <div className="space-y-2 max-h-80 overflow-y-auto no-scrollbar">
+            <div className="flex-1 space-y-2 overflow-y-auto no-scrollbar mb-2">
                 {!hasNotifsNow && // TODO MAKE SCROLL PRETTY
                     <div className="rounded-lg">
                     <button
@@ -73,14 +73,6 @@ export default function NotificationPanel({ swap }) {
                  )}
                 </div>
             ))}
-        </div>
-        <div className='pt-3'>
-            <button className="flex items-center bg-indigo-500 px-2 py-1 rounded hover:bg-indigo-600" onClick={() => {swap()}}>
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="w-6 h-6 text-white">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 2L6 14h5l-1 8 7-12h-5l1-8z" />
-                </svg>
-                <span className='text-md font-semibold text-white'>Abilities</span>
-            </button>
         </div>
         </div>
     )

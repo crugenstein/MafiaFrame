@@ -43,7 +43,7 @@ export default function NewAbilityWindow({ swap }) {
             <div className='flex items-center justify-between pb-2'>
                 <span className='text-lg font-semibold text-white'>Abilities</span>
             </div>
-            <ul className='space-y-3 max-w-full'>
+            <ul className='space-y-3 max-w-full max-h-60 overflow-y-auto'>
                 {abilities.map((ability) => (
                     <li key={ability.id} className='w-full rounded-lg bg-white/15 text-white shadow flex flex-col text-sm'>
                         <div className={`text-white text-lg font-semibold flex items-center justify-between border-b border-white/20 py-2 px-3 rounded-top ${ability.tags.includes(AbilityTag.NIGHT) ? 
@@ -70,12 +70,6 @@ export default function NewAbilityWindow({ swap }) {
                     </li>
                 ))}
             </ul>
-            <button className="flex items-center bg-indigo-500 px-2 py-1 rounded hover:bg-indigo-600" onClick={() => {swap()}}>
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="w-6 h-6 text-white">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 17h5l-1.405-1.405A2.993 2.993 0 0118 12V9a6 6 0 10-12 0v3a2.993 2.993 0 01-1.595 3.595L4 17h5m6 0a3 3 0 11-6 0" />
-                    </svg>
-                    <span className='text-md font-semibold text-white'>Notifications</span>
-            </button>
             <TargetSelectionModal 
                 show={showModal} 
                 onHide={() => {
