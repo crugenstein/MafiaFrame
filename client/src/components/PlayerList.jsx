@@ -28,11 +28,11 @@ export default function PlayerList({ lobbyMode }) {
     }
 
     if (lobbyMode) return (
-        <div className='w-full'>
+        <div className='flex flex-col h-full'>
             <div className='text-lg font-semibold mb-2 text-white'>Players</div>
-            <ul className='space-y-2 max-w-full'>
+            <div className='flex-1 space-y-2 overflow-y-auto no-scrollbar mb-2'>
                 {Array.from(playerData).map(([name, data]) => (
-                    <li key={name} className='w-full rounded-lg bg-white/15 px-3 py-2 text-white shadow flex items-center justify-between text-sm'>
+                    <div key={name} className='w-full rounded-lg bg-white/15 px-3 py-2 text-white shadow flex items-center justify-between text-sm'>
                         <span className='truncate max-w-[260px]'>{name}</span>
                         <div className='flex items-center gap-2 ml-2 whitespace-nowrap'>
                             {data.admin && (
@@ -41,9 +41,9 @@ export default function PlayerList({ lobbyMode }) {
                                 </span>)
                             }
                         </div>
-                    </li>
+                    </div>
                 ))}
-            </ul>
+            </div>
         </div>
     )
     
