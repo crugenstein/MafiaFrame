@@ -48,11 +48,11 @@ export default function PlayerList({ lobbyMode }) {
     )
     
     return (
-        <div className='w-full'>
+        <div className='flex flex-col h-full'>
             <div className='text-lg font-semibold mb-2 text-white'>Players</div>
-            <ul className='space-y-2 max-w-full'>
+            <div className='flex-1 space-y-2 overflow-y-auto no-scrollbar mb-2'>
                 {Array.from(playerData).map(([name, data]) => (
-                <li key={name} className='w-full rounded-lg bg-white/15 pl-2 pr-3 py-2 text-white shadow flex items-center justify-between text-sm'>
+                <div key={name} className='w-full rounded-lg bg-white/15 pl-2 pr-3 py-2 text-white shadow flex items-center justify-between text-sm'>
                     <div className="flex items-center gap-x-2 overflow-hidden">
                         <div className="flex items-center gap-x-1">
                             <button className="p-1 rounded bg-indigo-400 hover:bg-indigo-500 transition text-white font-semibold shadow disabled:bg-gray-400 disabled:cursor-not-allowed"
@@ -85,9 +85,9 @@ export default function PlayerList({ lobbyMode }) {
                             </span>)
                         }
                     </div>
-                </li>
+                </div>
             ))}
-        </ul>
+        </div>
             <WhisperTextModal 
                 show={showWhisperModal} 
                 onHide={() => {

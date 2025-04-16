@@ -104,7 +104,8 @@ export const useGameStore = create((set, get) => ({
                 socket.on('NEW_CHAT_READ_ACCESS', ({ chatId, name, messages }) => {
                     set((state) => {
                         const newChats = new Map(state.sharedChats)
-                        newChats.set(chatId, { name, messages, canWrite: false, canRead: true })
+                        const write = (newChats.has(chatId) ? newChats.get(chatId).canWrite : false)
+                        newChats.set(chatId, { name, messages, canWrite: write, canRead: true })
                         return { sharedChats: newChats }
                     })
                 })
@@ -122,8 +123,8 @@ export const useGameStore = create((set, get) => ({
                 socket.on('NEW_CHAT_WRITE_ACCESS', ({ chatId }) => {
                     set((state) => {
                         const newChats = new Map(state.sharedChats)
-                        const chat = newChats.get(chatId)
-                        chat.canWrite = true
+                        const chatData = newChats.get(chatId)
+                        newChats.set(chatId, { name: chatData.name, messages: chatData.messages, canWrite: true, canRead: true })
                         return { sharedChats: newChats }
                     })
                 })
@@ -131,8 +132,8 @@ export const useGameStore = create((set, get) => ({
                 socket.on('LOST_CHAT_WRITE_ACCESS', ({ chatId }) => {
                     set((state) => {
                         const newChats = new Map(state.sharedChats)
-                        const chat = newChats.get(chatId)
-                        chat.canWrite = false
+                        const chatData = newChats.get(chatId)
+                        newChats.set(chatId, { name: chatData.name, messages: chatData.messages, canWrite: false, canRead: true })
                         return { sharedChats: newChats }
                     })
                 })

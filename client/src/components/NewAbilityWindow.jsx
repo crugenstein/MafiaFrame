@@ -39,17 +39,17 @@ export default function NewAbilityWindow({ swap }) {
     }
 
     return (
-        <div className="w-full">
-            <div className='flex items-center justify-between pb-2'>
+        <div className="flex flex-col h-full">
+            <div className='flex items-center justify-between mb-2'>
                 <span className='text-lg font-semibold text-white'>Abilities</span>
             </div>
-            <ul className='space-y-3 max-w-full max-h-60 overflow-y-auto'>
+            <div className='flex-1 space-y-2 overflow-y-auto no-scrollbar mb-2'>
                 {abilities.map((ability) => (
-                    <li key={ability.id} className='w-full rounded-lg bg-white/15 text-white shadow flex flex-col text-sm'>
+                    <div key={ability.id} className='w-full rounded-lg bg-white/15 text-white shadow flex flex-col text-sm'>
                         <div className={`text-white text-lg font-semibold flex items-center justify-between border-b border-white/20 py-2 px-3 rounded-top ${ability.tags.includes(AbilityTag.NIGHT) ? 
                         'bg-gradient-to-r from-indigo-800 via-indigo-700 to-blue-700' : 'bg-gradient-to-r from-orange-600 via-yellow-700 to-orange-600'}`}>
                             <span className='truncate max-w-[270px]'>{ability.name}</span>
-                            <div className="bg-black/30 px-2 py-1 rounded">
+                            <div className="bg-black/30 px-2 py-1 rounded inline-flex">
                                 <span>{ability.tags.includes(AbilityTag.DAY) ? '☀️' : '🌙'}</span>
                                 <span className="ml-2">{ability.usages === 'Infinity' ? '∞' : `x${ability.usages}`}</span>
                             </div>
@@ -67,9 +67,9 @@ export default function NewAbilityWindow({ swap }) {
                                     }
                             >Use</button>
                         </div>
-                    </li>
+                    </div>
                 ))}
-            </ul>
+            </div>
             <TargetSelectionModal 
                 show={showModal} 
                 onHide={() => {
