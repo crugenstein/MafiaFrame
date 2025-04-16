@@ -13,10 +13,18 @@ export default function ChatBox({ chatId, setChatWindowId }) {
     const [showDropdown, setShowDropdown] = useState(false)
     const [message, setMessage] = useState('')
     const scrollRef = useRef()
+    const inputRef = useRef()
 
     useEffect(() => {
       scrollRef.current?.scrollIntoView({ behavior: 'smooth' })
     }, [messages])
+
+    useEffect(() => {
+      if (!canWrite) {
+        inputRef.current.value = ''
+        setMessage('')
+      } 
+    }, [canWrite])
 
     const sendMessage = (e) => {
         e.preventDefault()
@@ -106,6 +114,7 @@ export default function ChatBox({ chatId, setChatWindowId }) {
             <input
               type="text"
               value={message}
+              ref={inputRef}
               onChange={(e) => setMessage(e.target.value)}
               className="flex-1 rounded-lg px-4 py-2 bg-white/10 text-white placeholder-white/60 focus:outline-blue-700 disabled:hover:cursor-not-allowed"
               placeholder={canWrite ? 'Type a message...' : 'You can\'t send messages here right now!'}
