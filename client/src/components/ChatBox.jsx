@@ -43,7 +43,7 @@ export default function ChatBox({ chatId, setChatWindowId }) {
         <div className="h-full flex flex-col rounded-xl backdrop-blur-lg bg-white/10 shadow-xl overflow-hidden">
           <div className="flex items-center bg-gradient-to-r from-indigo-800 via-indigo-700 to-blue-700 text-white text-left py-2 px-4 border-b border-white/20">
             <h5 className="pt-1 text-xl font-bold tracking-wide truncate drop-shadow-sm">{chat?.name /*  TODO make this look less buttony */}</h5>
-            <div className='relative'>
+            {allChats.size > 1 && (<div className='relative'>
                 <button
                   onClick={() => setShowDropdown((prev) => !prev)}
                 >
@@ -66,7 +66,7 @@ export default function ChatBox({ chatId, setChatWindowId }) {
                     </div>
                   </div>
                 )}
-            </div>
+            </div>)}
           </div>
       
           <div className="flex-1 overflow-y-auto px-4 py-3 space-y-2 no-scrollbar">
