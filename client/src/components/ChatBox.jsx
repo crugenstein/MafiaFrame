@@ -21,7 +21,7 @@ export default function ChatBox({ chatId, setChatWindowId }) {
 
     useEffect(() => {
       if (!canWrite) {
-        inputRef.current.value = ''
+        if (inputRef.current) inputRef.current.value = ''
         setMessage('')
       } 
     }, [canWrite])

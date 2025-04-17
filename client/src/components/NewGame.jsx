@@ -6,12 +6,12 @@ import { useGameStore } from "../store/useGameStore"
 import { useEffect, useState } from 'react'
 import NotificationPanel from "./NotificationPanel";
 import PlayerDetails from "./PlayerDetails";
-import PhaseTimer from "./PhaseTimer";
+import NewPhaseTimer from "./NewPhaseTimer";
 
 export default function NewGame() {
     const currentDPId = useGameStore(state => state.currentDPId)
 
-    const [activeComponent, setActiveComponent] = useState('abilities')
+    const [activeComponent, setActiveComponent] = useState('players')
     const [activeChatId, setActiveChatId] = useState(currentDPId)
 
     const swapComponent = (moveTo) => {
@@ -68,8 +68,11 @@ export default function NewGame() {
                         </button>
                     </div>
                 </div>
-                <div className="backdrop-blur-lg bg-white/10 rounded-xl p-4 shadow-xl">
-                    <PhaseTimer />
+                <div className="backdrop-blur-lg bg-white/10 rounded-xl p-4 shadow-xl overflow-x-auto">
+                    <div className="flex items-center justify-between">
+                        <PlayerDetails />
+                        <NewPhaseTimer />
+                    </div>
                 </div>
             </div>
         </div>
