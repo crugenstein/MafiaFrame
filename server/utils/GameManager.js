@@ -82,17 +82,19 @@ class GameManager {
         if (this._gameLoopInterval) return
         this._lobbyChat = this.createSharedChat('Game Lobby')
 
-        this._gameLoopInterval = setInterval(() => {
-            if (this.gameStatus === GameStatus.LOBBY_COUNTDOWN || this.gameStatus === GameStatus.IN_PROGRESS) {
-                this.phaseTimeLeft = this.phaseTimeLeft - 1
-                if (this.gameStatus === GameStatus.LOBBY_COUNTDOWN && this.phaseTimeLeft > 0) {this.lobbyChat.addMessage(MessageType.SERVER, '[SERVER]', `Game starts in ${this.phaseTimeLeft} seconds...`)}
-                if (this.phaseTimeLeft <= 0) {
-                    if (this.phaseType === PhaseType.DAY) {this.endDayPhase()}
-                    else if (this.phaseType === PhaseType.NIGHT) {this.endNightPhase(true)}
-                    else if (this.phaseType === PhaseType.LOBBY) {this.startGame()}
-                }
+        this._gameLoopInterval = setInterval(() => {this.onInterval()}, 1000)
+    }
+
+    onInterval() {
+        if (this.gameStatus === GameStatus.LOBBY_COUNTDOWN || this.gameStatus === GameStatus.IN_PROGRESS) {
+            this.phaseTimeLeft = this.phaseTimeLeft - 1
+            if (this.gameStatus === GameStatus.LOBBY_COUNTDOWN && this.phaseTimeLeft > 0) {this.lobbyChat.addMessage(MessageType.SERVER, '[SERVER]', `Game starts in ${this.phaseTimeLeft} seconds...`)}
+            if (this.phaseTimeLeft <= 0) {
+                if (this.phaseType === PhaseType.DAY) {this.endDayPhase()}
+                else if (this.phaseType === PhaseType.NIGHT) {this.endNightPhase(true)}
+                else if (this.phaseType === PhaseType.LOBBY) {this.startGame()}
             }
-        }, 1000)
+        }
     }
 
     /** Stops the internal clock. Run this when the game ends. */
@@ -109,10 +111,10 @@ class GameManager {
     }
 
     /** Transitions from lobby to first day phase. */
-    startGame() {
-        console.log('Game start!')
+    startGame(roledist = RoleDistributor.distribute) {
+        console.log('game start!!')
         this.gameStatus = GameStatus.ROLLOVER
-        RoleDistributor.distribute(GameManager.getInstance())
+        roledist(GameManager.getInstance())
 
         this.allPlayers.forEach((playerName) => {
             const player = this.getPlayer(playerName)
@@ -149,7 +151,7 @@ class GameManager {
         
         if (this.checkWinConditions()) return
         this.gameStatus = GameStatus.IN_PROGRESS
-        this.phaseTimeLeft = 150
+        this.phaseTimeLeft = this.phaseLength
     }
 
     /**
@@ -190,7 +192,7 @@ class GameManager {
         if (this.checkWinConditions()) return
 
         this.gameStatus = GameStatus.IN_PROGRESS
-        this.phaseTimeLeft = 150
+        this.phaseTimeLeft = this.phaseLength
     }
     
     /**
