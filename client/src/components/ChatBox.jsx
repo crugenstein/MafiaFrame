@@ -51,7 +51,7 @@ export default function ChatBox({ chatId, setChatWindowId }) {
         <div className="h-full flex flex-col rounded-xl backdrop-blur-lg bg-white/10 shadow-xl overflow-hidden">
           <div className="flex items-center bg-gradient-to-r from-indigo-800 via-indigo-700 to-blue-700 text-white text-left py-2 px-4 border-b border-white/20">
             <h5 className="pt-1 text-xl font-bold tracking-wide truncate drop-shadow-sm">{chat?.name /*  TODO make this look less buttony */}</h5>
-            {allChats.size > 1 && (<div className='relative'>
+            {allChats.size > 2 && (<div className='relative'>
                 <button
                   onClick={() => setShowDropdown((prev) => !prev)}
                 >
@@ -64,7 +64,14 @@ export default function ChatBox({ chatId, setChatWindowId }) {
                 {showDropdown && (
                   <div className='absolute z-10 mt-1 w-40 origin-top-right rounded-md bg-slate-800 shadow'>
                     <div className={`text-sm text-white max-h-90 overflow-y-auto no-scrollbar`}>
-                    {Array.from(allChats).reverse().map(([chatId, chat]) => (
+                    {Array.from(allChats).reverse().filter(([_, chat]) => chat.canWrite && chat.canRead).map(([chatId, chat]) => (
+                        chat.canRead && (<div className='first:rounded-t-md last:border-none last:rounded-b-md px-2 py-1 hover:bg-slate-500 hover:cursor-pointer truncate w-full border-b border-slate-700' onClick={() => {
+                          setShowDropdown(false)
+                          setChatWindowId(chatId)}} key={chatId}>
+                        {chat.name}
+                        </div>)
+                    ))}
+                    {Array.from(allChats).reverse().filter(([_, chat]) => !chat.canWrite && chat.canRead).map(([chatId, chat]) => (
                         chat.canRead && (<div className='first:rounded-t-md last:border-none last:rounded-b-md px-2 py-1 hover:bg-slate-500 hover:cursor-pointer truncate w-full border-b border-slate-700' onClick={() => {
                           setShowDropdown(false)
                           setChatWindowId(chatId)}} key={chatId}>
