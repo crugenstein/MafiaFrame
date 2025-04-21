@@ -34,12 +34,17 @@ export default function PlayerList({ lobbyMode }) {
                 {Array.from(playerData).map(([name, data]) => (
                     <div key={name} className='w-full rounded-lg bg-white/15 px-3 py-2 text-white shadow flex items-center justify-between text-sm'>
                         <span className='truncate max-w-[260px]'>{name}</span>
+                        {name === username && (
+                                <span className='text-blue-200'>
+                                    (You)
+                                </span>
+                            )}
                         <div className='flex items-center gap-2 ml-2 whitespace-nowrap'>
                             {data.admin && (
                                 <span className='text-yellow-300 bg-yellow-300/25 rounded px-2 py-0.5 text-xs'>
                                     👑 Admin
-                                </span>)
-                            }
+                                </span>
+                            )}
                         </div>
                     </div>
                 ))}
@@ -74,6 +79,11 @@ export default function PlayerList({ lobbyMode }) {
                             >💬</button>
                         </div>
                         <span className="truncate max-w-[260px] text-white">{name}</span>
+                        {name === username && (
+                                <span className='text-blue-200'>
+                                    (You)
+                                </span>
+                            )}
                     </div>
                     <div className='flex items-center gap-2 ml-2 whitespace-nowrap'>
                         <span className={data.visibleAlignment === PlayerAlignment.MAFIA ? 'font-bold text-red-500' : 'font-bold'}>
