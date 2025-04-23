@@ -7,13 +7,17 @@ import { useEffect, useState } from 'react'
 import NotificationPanel from "./NotificationPanel";
 import PlayerDetails from "./PlayerDetails";
 import NewPhaseTimer from "./NewPhaseTimer";
+import Toast from './Toast'
 
 export default function NewGame() {
     const currentDPId = useGameStore(state => state.currentDPId)
     const alive = useGameStore(state => state.alive)
+    const end = useGameStore(state => state.victory)
 
     const [activeComponent, setActiveComponent] = useState('players')
     const [activeChatId, setActiveChatId] = useState(currentDPId)
+    const [showToast, setShowToast] = useState(false)
+    const [toastText, setToastText] = useState('')
 
     const swapComponent = (moveTo) => {
         setActiveComponent(moveTo)
@@ -22,6 +26,16 @@ export default function NewGame() {
     useEffect(() => {
         if (!activeChatId) setActiveChatId(currentDPId)
     }, [currentDPId])
+
+    useEffect(() => {
+        if (end === 'TOWN VICTORY') {
+            setToastText('The Town won!')
+            setShowToast(true)
+        } else if (end === 'MAFIA VICTORY') {
+            setToastText('The Town won!')
+            setShowToast(true)
+        }
+    }, [end])
 
     const renderComponent = () => {
         switch (activeComponent) {
@@ -85,6 +99,11 @@ export default function NewGame() {
                     </div>
                 </div>
         </div>
+        <Toast
+                        show={showToast}
+                        onHide={() => setShowToast(false)}
+                        text={toastText}
+                    />
         </div>
     )
 }

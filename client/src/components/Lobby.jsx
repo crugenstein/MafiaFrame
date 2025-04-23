@@ -31,7 +31,7 @@ export default function Lobby() {
     if (!username) return <LobbyLogin onUsernameSubmit={handleJoin}/>
     else if (phaseType === PhaseType.DAY || phaseType === PhaseType.NIGHT) return <NewGame />
     else return (
-      <div className="h-screen flex bg-gradient-to-br from-gray-800 via-gray-900 to-black text-white">
+      <div className="font-game h-screen flex bg-gradient-to-br from-gray-800 via-gray-900 to-black text-white">
         <div className="flex-[3] p-4 overflow-hidden">
           <div className="h-full backdrop-blur-lg bg-white/10 rounded-xl p-4 shadow-xl">
             <ChatBox chatId={lobbyChatId} />

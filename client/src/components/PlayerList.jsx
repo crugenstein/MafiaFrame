@@ -33,12 +33,14 @@ export default function PlayerList({ lobbyMode }) {
             <div className='flex-1 space-y-2 overflow-y-auto no-scrollbar mb-2'>
                 {Array.from(playerData).map(([name, data]) => (
                     <div key={name} className='w-full rounded-lg bg-white/15 px-3 py-2 text-white shadow flex items-center justify-between text-sm'>
+                        <div>
                         <span className='truncate max-w-[260px]'>{name}</span>
                         {name === username && (
-                                <span className='text-blue-200'>
+                                <span className='ml-1 text-blue-200'>
                                     (You)
                                 </span>
                             )}
+                        </div>
                         <div className='flex items-center gap-2 ml-2 whitespace-nowrap'>
                             {data.admin && (
                                 <span className='text-yellow-300 bg-yellow-300/25 rounded px-2 py-0.5 text-xs'>
