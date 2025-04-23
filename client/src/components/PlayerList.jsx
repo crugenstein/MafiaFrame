@@ -9,6 +9,7 @@ export default function PlayerList({ lobbyMode }) {
     const whisperCount = useGameStore(state => state.whispers)
     const phaseType = useGameStore(state => state.gamePhaseType)
     const username = useGameStore(state => state.username)
+    const alive = useGameStore(state => state.alive)
 
     const [showToast, setShowToast] = useState(false)
     const [toastText, setToastText] = useState('')
@@ -66,7 +67,9 @@ export default function PlayerList({ lobbyMode }) {
                                     onClick={() => {
                                         emit('CLICK_VOTE_ACTION', {target: name})
                                     }}
-                                    disabled={phaseType !== PhaseType.DAY
+                                    disabled={phaseType !== PhaseType.DAY ||
+                                                data.status === PlayerStatus.DEAD ||
+                                                !alive
                                     }
                             >🪓</button>
                             <button className="p-1 rounded bg-indigo-400 hover:bg-indigo-500 transition text-white font-semibold shadow disabled:bg-gray-400 disabled:cursor-not-allowed"
@@ -76,7 +79,9 @@ export default function PlayerList({ lobbyMode }) {
                                     }}
                                     disabled={phaseType !== PhaseType.DAY ||
                                         whisperCount < 1 ||
-                                        name === username
+                                        name === username || 
+                                        data.status === PlayerStatus.DEAD ||
+                                        !alive
                                     }
                             >💬</button>
                         </div>

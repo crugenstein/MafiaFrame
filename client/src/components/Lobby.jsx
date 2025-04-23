@@ -1,6 +1,5 @@
 import React from 'react'
 import LobbyLogin from './LobbyLogin'
-import Game from './Game'
 import NewGame from './NewGame'
 import { useGameStore, PhaseType } from '../store/useGameStore'
 import ChatBox from './ChatBox'
