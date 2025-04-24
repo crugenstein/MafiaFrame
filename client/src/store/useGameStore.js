@@ -53,6 +53,7 @@ export const useGameStore = create((set, get) => ({
     notifications: [],
     whispers: 3,
     abilitySlots: 1,
+    unreadNotifications: 0,
 
     currentDPId: null,
 
@@ -175,7 +176,7 @@ export const useGameStore = create((set, get) => ({
                 socket.on('RECEIVE_NOTIF', (notif) => {
                     set((state) => {
                         const newNotifs = [...state.notifications, notif]
-                        return { notifications: newNotifs }
+                        return { notifications: newNotifs, unreadNotifications: state.unreadNotifications + 1 }
                     })
                 })
         
@@ -282,6 +283,10 @@ export const useGameStore = create((set, get) => ({
 
     setAdmin: (val) => {
         set({ admin: val })
+    },
+
+    clearUnreadNotifications: () => {
+        set({ unreadNotifications: 0 })
     }
 
 }))
