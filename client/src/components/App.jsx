@@ -3,8 +3,6 @@ import Lobby from './Lobby';
 import { useGameStore } from '../store/useGameStore'
 import { Container, Form, Button, Spinner, Alert } from 'react-bootstrap'
 
-
-
 export default function App() {
   const initSocket = useGameStore(state => state.initSocket)
   const disconnectSocket = useGameStore(state => state.disconnectSocket)

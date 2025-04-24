@@ -1,0 +1,43 @@
+@import url('https://fonts.googleapis.com/css2?family=Oxanium:wght@432&family=Tektur:wght@400..900&display=swap');
+@import 'tailwindcss';
+
+@theme {
+  --font-game: 'Tektur', 'sans-serif'
+}
+
+@layer utilities {
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+  }
+
+@keyframes moveGrid {
+    0% {
+      background-position: 0 0;
+    }
+    100% {
+      background-position: 100px 100px;
+    }
+  }
+  
+  .bg-grid {
+    background-image: 
+      linear-gradient(rgba(255,255,255,0.05) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.05) 1px, transparent 1px);
+    background-size: 50px 50px;
+    animation: moveGrid 20s linear infinite;
+  }
+
+  .vignette {
+    background: radial-gradient(
+      ellipse at center,
+      rgba(255, 0, 0, 0) 40%,
+      rgba(255, 0, 0, 0.2) 70%,
+      rgba(255, 0, 0, 0.4) 100%
+    );
+    mix-blend-mode: screen;
+  }

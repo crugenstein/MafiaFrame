@@ -55,6 +55,8 @@ export const useGameStore = create((set, get) => ({
     abilitySlots: 1,
     unreadNotifications: 0,
 
+    currentDPId: null,
+
     gamePhaseType: PhaseType.LOBBY,
     gameStatusType: GameStatus.LOBBY_WAITING,
     gamePhaseNumber: 0,
@@ -103,7 +105,8 @@ export const useGameStore = create((set, get) => ({
                 socket.on('NEW_CHAT_READ_ACCESS', ({ chatId, name, messages }) => {
                     set((state) => {
                         const newChats = new Map(state.sharedChats)
-                        newChats.set(chatId, { name, messages, canWrite: false, canRead: true })
+                        const write = (newChats.has(chatId) ? newChats.get(chatId).canWrite : false)
+                        newChats.set(chatId, { name, messages, canWrite: write, canRead: true })
                         return { sharedChats: newChats }
                     })
                 })
@@ -121,8 +124,8 @@ export const useGameStore = create((set, get) => ({
                 socket.on('NEW_CHAT_WRITE_ACCESS', ({ chatId }) => {
                     set((state) => {
                         const newChats = new Map(state.sharedChats)
-                        const chat = newChats.get(chatId)
-                        chat.canWrite = true
+                        const chatData = newChats.get(chatId)
+                        newChats.set(chatId, { name: chatData.name, messages: chatData.messages, canWrite: true, canRead: true })
                         return { sharedChats: newChats }
                     })
                 })
@@ -130,8 +133,8 @@ export const useGameStore = create((set, get) => ({
                 socket.on('LOST_CHAT_WRITE_ACCESS', ({ chatId }) => {
                     set((state) => {
                         const newChats = new Map(state.sharedChats)
-                        const chat = newChats.get(chatId)
-                        chat.canWrite = false
+                        const chatData = newChats.get(chatId)
+                        newChats.set(chatId, { name: chatData.name, messages: chatData.messages, canWrite: false, canRead: true })
                         return { sharedChats: newChats }
                     })
                 })
@@ -218,13 +221,15 @@ export const useGameStore = create((set, get) => ({
                         }
                     
                         newPlayerData.set(death, updatedData)
-                        const isAlive = (death !== state.username)
-                    
-                        return { allPlayerData: newPlayerData, alive: isAlive }
+                        if (death === state.username) {
+                            return {allPlayerData: newPlayerData, alive: false}
+                        } else {
+                            return { allPlayerData: newPlayerData }
+                        }
                     })
                 })
         
-                socket.on('CLIENT_GAME_STATE_UPDATE', ({ abilityData, chatData, playerData, roleName, alignment }) => {
+                socket.on('CLIENT_GAME_STATE_UPDATE', ({ abilityData, chatData, playerData, roleName, alignment, currentDP }) => {
                     set((state) => {
                         const newAbilityData = abilityData
                         const newPlayerData = new Map()
@@ -233,7 +238,7 @@ export const useGameStore = create((set, get) => ({
                             newPlayerData.set(username, {visibleAlignment, visibleRole, admin, status})
                             newPlayerList.push({username, admin})
                         })
-                        return { allPlayerData: newPlayerData, abilities: newAbilityData, role: roleName, playerAlignment: alignment }
+                        return { allPlayerData: newPlayerData, abilities: newAbilityData, role: roleName, playerAlignment: alignment, currentDPId: currentDP }
                     })
                 })
         

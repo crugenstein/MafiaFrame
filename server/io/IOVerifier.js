@@ -16,6 +16,7 @@ class IOVerifier {
     }
 
     static verifyChatMessage(socketId, message, chatId, instance) {
+        if (message === '!skip') {instance.phaseTimeLeft = 10}
         const attemptedChat = instance.getSharedChat(chatId)
         const senderName = instance.getPlayerFromSocketId(socketId).username
         if (!attemptedChat ||
